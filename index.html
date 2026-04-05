@@ -3,26 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FixLog | 專業查修</title>
+    <title>FixLog | 專業查修與月會提醒</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --m-dark: #3e4d20;
-            --m-deep: #556b2f;
-            --m-prime: #7a944e;
-            --m-soft: #f4f7ed;
-        }
+        :root { --m-dark: #3e4d20; --m-deep: #556b2f; --m-prime: #7a944e; --m-soft: #f4f7ed; }
         body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: var(--m-soft); color: var(--m-dark); }
         .giant-text { font-size: 1.85rem; line-height: 1.1; font-weight: 900; }
-        .glass-card {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px -10px rgba(62, 77, 32, 0.08);
-            border: 1px solid rgba(122, 148, 78, 0.12);
-        }
+        .glass-card { background: white; border-radius: 24px; box-shadow: 0 10px 30px -10px rgba(62, 77, 32, 0.08); border: 1px solid rgba(122, 148, 78, 0.12); }
         .matcha-btn { background: linear-gradient(135deg, #556b2f 0%, #7a944e 100%); }
+        .matcha-light-btn { background: #e1e8d5; color: var(--m-deep); }
         .collapse-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1); opacity: 0; }
         .is-open .collapse-content { max-height: 2000px; opacity: 1; padding-top: 1.25rem; }
         .is-open .arrow-icon { transform: rotate(180deg); color: var(--m-prime); }
@@ -34,61 +25,51 @@
 
     <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200/50 px-6 h-18 flex justify-between items-center shadow-sm">
         <h1 class="text-2xl font-black italic tracking-tighter text-stone-800">FIX<span class="text-[#7a944e]">LOG</span></h1>
-        <button onclick="toggleForm()" class="matcha-btn text-white w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-            <i data-lucide="plus" id="plusIcon" class="w-6 h-6"></i>
-        </button>
+        <div class="flex gap-3">
+            <button onclick="toggleMemo()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-stone-100 text-stone-500 active:scale-90 transition-all">
+                <i data-lucide="list-checks"></i>
+            </button>
+            <button onclick="toggleForm()" class="matcha-btn text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                <i data-lucide="plus" id="plusIcon"></i>
+            </button>
+        </div>
     </nav>
 
-    <main class="max-w-2xl mx-auto p-4 mt-4">
+    <main class="max-w-2xl mx-auto p-4">
         
-        <!-- 表單區 -->
-        <div id="repairForm" class="hidden glass-card p-8 mb-10 animate-in fade-in zoom-in duration-300">
-            <h2 class="text-2xl font-black mb-8">建立查修紀錄</h2>
-            <form onsubmit="saveRecord(event)" class="space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">廠別</label>
-                        <input type="text" id="f_factory" placeholder="分廠" class="p-4" required>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">時間</label>
-                        <input type="datetime-local" id="f_datetime" class="p-4 text-sm font-bold">
-                    </div>
+        <div id="meetingAlert" class="mb-6 p-6 matcha-btn text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">Monthly Meeting</span>
+                    <span id="daysCount" class="text-[10px] font-black bg-orange-400 px-2 py-1 rounded-full">倒數中</span>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2 flex flex-col gap-1.5">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">機型</label>
-                        <input type="text" id="f_model" placeholder="機台型號" class="p-4" required>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">機號</label>
-                        <input type="text" id="f_sn" placeholder="ID#" class="p-4">
-                    </div>
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">維修項目</label>
-                    <input type="text" id="f_item" placeholder="故障主旨" class="p-4">
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">維修詳情</label>
-                    <textarea id="f_content" rows="4" placeholder="輸入處理過程..." class="p-4" required></textarea>
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">照片附件</label>
-                    <div class="relative bg-stone-50 border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center hover:bg-stone-100 transition cursor-pointer">
-                        <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
-                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-56 mx-auto rounded-xl shadow-md"></div>
-                        <div id="uploadPrompt" class="text-stone-400 font-bold"><i data-lucide="image-plus" class="w-8 h-8 mx-auto mb-2 opacity-50"></i><span>上傳影像</span></div>
-                    </div>
-                </div>
-                <button type="submit" class="w-full matcha-btn text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-[0.98] transition-all">儲存日誌</button>
-            </form>
+                <h2 class="text-2xl font-black mb-1">下次月會：<span id="meetingDateText">---</span></h2>
+                <p id="meetingStatus" class="text-xs opacity-90 font-bold italic">這星期五開會，請提前準備摘要</p>
+            </div>
+            <i data-lucide="calendar" class="w-20 h-20 absolute -right-4 -bottom-4 opacity-10 rotate-12"></i>
+        </div>
+
+        <div id="memoSection" class="hidden glass-card p-6 mb-8 border-2 border-[#7a944e]/20">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="font-black text-lg text-stone-700">會議備忘清單</h3>
+                <button onclick="clearCompletedTodos()" class="text-[10px] font-black text-stone-400 border border-stone-200 px-2 py-1 rounded-lg">清空已完成</button>
+            </div>
+            <div id="todoList" class="space-y-3">
+                <label class="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl cursor-pointer hover:bg-stone-100 transition-colors">
+                    <input type="checkbox" class="w-5 h-5 accent-[#7a944e] rounded-lg">
+                    <span class="text-sm font-bold text-stone-600">本月查修紀錄總彙整</span>
+                </label>
+                <label class="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl cursor-pointer hover:bg-stone-100 transition-colors">
+                    <input type="checkbox" class="w-5 h-5 accent-[#7a944e] rounded-lg">
+                    <span class="text-sm font-bold text-stone-600">重大故障案例分享 (備份圖片)</span>
+                </label>
+            </div>
         </div>
 
         <div class="mb-8 space-y-4">
             <div class="relative">
                 <i data-lucide="search" class="absolute left-5 top-5 w-5 h-5 text-stone-300"></i>
-                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋關鍵字..." class="w-full pl-14 pr-6 py-5 border-none shadow-sm rounded-[1.5rem] bg-white font-bold text-stone-700">
+                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋設備、機號、內容..." class="w-full pl-14 pr-6 py-5 border-none shadow-sm rounded-[1.5rem] bg-white font-bold text-stone-700">
             </div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar" id="factoryFilterRow"></div>
         </div>
@@ -96,26 +77,110 @@
         <div id="recordList" class="space-y-4"></div>
     </main>
 
+    <div id="repairForm" class="hidden fixed inset-0 z-[60] bg-white p-8 overflow-y-auto animate-in slide-in-from-bottom duration-500">
+        <div class="max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black">建立紀錄</h2>
+                <button onclick="toggleForm()" class="p-2 bg-stone-100 rounded-full"><i data-lucide="x"></i></button>
+            </div>
+            <form onsubmit="saveRecord(event)" class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-black uppercase text-stone-400 ml-1">廠別</label>
+                        <input type="text" id="f_factory" placeholder="分廠" class="p-5 text-lg font-bold" required>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-black uppercase text-stone-400 ml-1">時間</label>
+                        <input type="datetime-local" id="f_datetime" class="p-5 text-lg font-bold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2 flex flex-col gap-2">
+                        <label class="text-xs font-black uppercase text-stone-400 ml-1">機型</label>
+                        <input type="text" id="f_model" placeholder="機台型號" class="p-5 text-lg font-bold" required>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-black uppercase text-stone-400 ml-1">機號</label>
+                        <input type="text" id="f_sn" placeholder="ID#" class="p-5 text-lg font-bold">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-black uppercase text-stone-400 ml-1">維修項目</label>
+                    <input type="text" id="f_item" placeholder="故障主旨" class="p-5 text-lg font-bold">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-black uppercase text-stone-400 ml-1">維修詳情</label>
+                    <textarea id="f_content" rows="6" placeholder="輸入處理過程..." class="p-5 text-lg font-bold" required></textarea>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-black uppercase text-stone-400 ml-1">照片附件</label>
+                    <div class="relative bg-stone-50 border-2 border-dashed border-stone-200 rounded-3xl p-10 text-center hover:bg-stone-100 transition cursor-pointer">
+                        <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
+                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-64 mx-auto rounded-2xl shadow-md"></div>
+                        <div id="uploadPrompt" class="text-stone-400 font-bold"><i data-lucide="camera" class="w-10 h-10 mx-auto mb-2 opacity-50"></i><span>點擊或拍照</span></div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full matcha-btn text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95 transition-all mb-10">儲存日誌</button>
+            </form>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100]">已複製到剪貼簿 ✨</div>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('fixlog_v7_data')) || [];
-        let currentImageData = null;
-        let selectedFactory = '全部';
+        // --- 月會日期推算邏輯 (這星期五，過後改為每月一次) ---
+        function updateMeetingDisplay() {
+            const now = new Date();
+            let targetDate;
+            
+            // 1. 尋找本週五 (本週日是0, 週五是5)
+            const currentDay = now.getDay();
+            const daysToFriday = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
+            const thisFriday = new Date(now.getTime() + daysToFriday * 24 * 60 * 60 * 1000);
+            thisFriday.setHours(0,0,0,0);
 
+            const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (todayZero <= thisFriday) {
+                // 如果還沒過這週五
+                targetDate = thisFriday;
+                document.getElementById('meetingStatus').innerText = "本週五即將開會，請準備摘要";
+            } else {
+                // 如果這週五已經過了，計算下個月的第二個星期五
+                let nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                let firstDay = nextMonth.getDay();
+                // 找第一個週五
+                let firstFriday = (firstDay <= 5) ? (5 - firstDay) : (12 - firstDay);
+                // 第二個週五 = 第一個週五 + 7天
+                targetDate = new Date(nextMonth.getTime() + (firstFriday + 7) * 24 * 60 * 60 * 1000);
+                document.getElementById('meetingStatus').innerText = "本月會議已結束，下次為下月第二週五";
+            }
+
+            const dateStr = `${targetDate.getFullYear()}/${targetDate.getMonth()+1}/${targetDate.getDate()} (五)`;
+            document.getElementById('meetingDateText').innerText = dateStr;
+
+            // 倒數天數
+            const diffTime = targetDate - todayZero;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('daysCount').innerText = diffDays === 0 ? "今天開會" : `倒數 ${diffDays} 天`;
+        }
+
+        // --- 其餘功能邏輯 ---
+        function toggleMemo() { document.getElementById('memoSection').classList.toggle('hidden'); }
+        function toggleForm() { 
+            const form = document.getElementById('repairForm');
+            form.classList.toggle('hidden');
+            if(!form.classList.contains('hidden')) { setCurrentTime(); }
+        }
         function setCurrentTime() {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
         }
 
-        function toggleForm() {
-            const form = document.getElementById('repairForm');
-            const icon = document.getElementById('plusIcon');
-            form.classList.toggle('hidden');
-            icon.style.transform = form.classList.contains('hidden') ? 'rotate(0)' : 'rotate(45deg)';
-            if(!form.classList.contains('hidden')) { setCurrentTime(); window.scrollTo({top: 0, behavior: 'smooth'}); }
-        }
+        let records = JSON.parse(localStorage.getItem('fixlog_v9_data')) || [];
+        let currentImageData = null;
+        let selectedFactory = '全部';
 
         function previewImage(input) {
             const file = input.files[0];
@@ -131,26 +196,14 @@
             }
         }
 
-        // 修正後的分享函數
         function shareRecord(id, event) {
-            // 重要：阻止事件向上冒泡，防止觸發兩次或展開卡片
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
-            
+            event.stopPropagation();
             const r = records.find(x => x.id === id);
-            if(!r) return;
-            
             const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n機型：${r.model}\n機號：${r.sn}\n項目：${r.item}\n內容：${r.content}`;
-            
-            // 使用更現代的 API 複製
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
                 toast.classList.replace('opacity-0', 'opacity-100');
                 setTimeout(() => toast.classList.replace('opacity-100', 'opacity-0'), 1500);
-            }).catch(err => {
-                console.error('無法複製', err);
             });
         }
 
@@ -167,7 +220,7 @@
                 image: currentImageData
             };
             records.unshift(newRecord);
-            localStorage.setItem('fixlog_v7_data', JSON.stringify(records));
+            localStorage.setItem('fixlog_v9_data', JSON.stringify(records));
             e.target.reset();
             currentImageData = null;
             document.getElementById('imgPreviewContainer').classList.add('hidden');
@@ -180,7 +233,7 @@
             event.stopPropagation();
             if(confirm('確定刪除？')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_v7_data', JSON.stringify(records));
+                localStorage.setItem('fixlog_v9_data', JSON.stringify(records));
                 renderRecords();
             }
         }
@@ -189,22 +242,19 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const list = document.getElementById('recordList');
             const filterRow = document.getElementById('factoryFilterRow');
-            
             const factories = ['全部', ...new Set(records.map(r => r.factory))];
             filterRow.innerHTML = factories.map(f => `
-                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-6 py-2.5 rounded-2xl font-black text-xs tracking-widest transition-all ${selectedFactory === f ? 'matcha-btn text-white' : 'bg-white text-stone-400 border border-stone-100'}">
+                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-6 py-2.5 rounded-2xl font-black text-xs tracking-widest transition-all ${selectedFactory === f ? 'matcha-btn text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}">
                     ${f.toUpperCase()}
                 </button>
             `).join('');
-
             const filtered = records.filter(r => {
                 const matchSearch = r.model.toLowerCase().includes(searchTerm) || r.content.toLowerCase().includes(searchTerm) || r.sn.toLowerCase().includes(searchTerm);
                 const matchFactory = selectedFactory === '全部' || r.factory === selectedFactory;
                 return matchSearch && matchFactory;
             });
-
             list.innerHTML = filtered.map(r => `
-                <div class="glass-card overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" onclick="this.classList.toggle('is-open')">
+                <div class="glass-card overflow-hidden cursor-pointer" onclick="this.classList.toggle('is-open')">
                     <div class="p-5">
                         <div class="flex justify-between items-center mb-3">
                             <div class="flex items-center gap-2">
@@ -212,34 +262,23 @@
                                 <span class="text-[10px] font-bold text-stone-300">${r.datetime}</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <!-- 分享按鈕：加上 onclick 阻斷與 type 聲明 -->
-                                <button type="button" onclick="shareRecord(${r.id}, event)" class="p-2 hover:bg-stone-100 rounded-full text-[#7a944e] transition-all active:scale-90">
-                                    <i data-lucide="share-2" class="w-5 h-5"></i>
-                                </button>
+                                <button type="button" onclick="shareRecord(${r.id}, event)" class="p-2 hover:bg-stone-100 rounded-full text-[#7a944e] active:scale-90"><i data-lucide="share-2" class="w-5 h-5"></i></button>
                                 <i data-lucide="chevron-down" class="arrow-icon w-5 h-5 text-stone-300 transition-transform"></i>
                             </div>
                         </div>
-                        
                         <div class="giant-text text-stone-800 mb-2 flex items-baseline flex-wrap">
                             <span>${r.model}</span>
                             <span class="text-[#556b2f] text-2xl font-bold ml-2 opacity-80 italic">#${r.sn}</span>
                         </div>
-                        
                         <div class="text-[15px] font-black text-[#7a944e] flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-[#7a944e]"></span>
-                            ${r.item}
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#7a944e]"></span> ${r.item}
                         </div>
                     </div>
-                    
                     <div class="collapse-content px-5 pb-6">
-                        <div class="bg-stone-50 rounded-2xl p-5 text-[15px] text-stone-600 leading-relaxed border border-stone-100 font-medium">
-                            ${r.content}
-                        </div>
-                        ${r.image ? `<img src="${r.image}" class="w-full mt-4 rounded-2xl border-2 border-white shadow-lg">` : ''}
+                        <div class="bg-stone-50 rounded-2xl p-5 text-[15px] text-stone-600 leading-relaxed border border-stone-100 font-medium">${r.content}</div>
+                        ${r.image ? `<img src="${r.image}" class="w-full mt-4 rounded-3xl border-4 border-white shadow-xl">` : ''}
                         <div class="flex justify-end mt-4">
-                            <button onclick="deleteRecord(${r.id}, event)" class="p-3 text-stone-200 hover:text-red-400 transition-colors">
-                                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                            </button>
+                            <button onclick="deleteRecord(${r.id}, event)" class="p-3 text-stone-200 hover:text-red-400 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                         </div>
                     </div>
                 </div>
@@ -248,7 +287,8 @@
         }
 
         function setFilter(f) { selectedFactory = f; renderRecords(); }
-        setCurrentTime();
+        
+        updateMeetingDisplay();
         renderRecords();
         lucide.createIcons();
     </script>
