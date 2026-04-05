@@ -3,34 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaidieLog | 療癒系維修日誌</title>
+    <title>Matcha Log | 小野與抹茶維修日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Nunito', 'Noto Sans TC', sans-serif; background-color: #fdf6f0; }
-        .card-shadow { box-shadow: 0 8px 30px rgba(221, 196, 181, 0.3); }
-        .collapse-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .is-open .collapse-content { max-height: 1000px; transition: max-height 0.5s ease-in; }
-        .is-open .arrow-icon { transform: rotate(180deg); }
-        input, select, textarea { border: 2px solid #f0e4d7 !important; transition: all 0.2s; }
-        input:focus, textarea:focus { border-color: #ffb7b7 !important; background-color: #fff !important; outline: none; }
-        .btn-gradient { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        :root {
+            --matcha-dark: #556b2f;
+            --matcha-light: #9ab973;
+            --matcha-cream: #f2f4ef;
+        }
+        body { font-family: 'Nunito', 'Noto Sans TC', sans-serif; background-color: var(--matcha-cream); color: var(--matcha-dark); }
+        .matcha-gradient { background: linear-gradient(135deg, #748c4a 0%, #9ab973 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .collapse-content { max-height: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
+        .is-open .collapse-content { max-height: 1200px; opacity: 1; padding-top: 1.25rem; }
+        .is-open .arrow-icon { transform: rotate(180deg); color: var(--matcha-light); }
+        .hirono-avatar { width: 48px; height: 48px; border-radius: 16px; background-size: cover; border: 2px solid white; box-shadow: 0 4px 10px rgba(85, 107, 47, 0.1); }
+        input, select, textarea { border: 2px solid #e1e8d8 !important; border-radius: 16px !important; }
+        input:focus { border-color: var(--matcha-light) !important; ring: none; outline: none; background: white; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-10 text-stone-700">
+<body class="pb-12">
 
     <!-- 頂部導航 -->
-    <nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-orange-100">
+    <nav class="sticky top-0 z-50 glass-card border-b border-white/50">
         <div class="max-w-2xl mx-auto px-6 h-20 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="bg-pink-100 p-2 rounded-2xl text-pink-500">
-                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 matcha-gradient rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i data-lucide="leaf" class="w-6 h-6"></i>
                 </div>
-                <h1 class="text-xl font-extrabold text-stone-800 tracking-tight">Fixie <span class="text-pink-400">Log</span></h1>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight">Matcha <span class="text-lime-600/70">Fix</span></h1>
+                    <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest leading-none">Repair Journal</p>
+                </div>
             </div>
-            <button onclick="toggleForm()" class="btn-gradient text-white p-3 rounded-2xl shadow-lg active:scale-90 transition-transform">
-                <i data-lucide="plus" id="plusIcon" class="w-6 h-6 transition-transform"></i>
+            <button onclick="toggleForm()" class="matcha-gradient text-white p-3 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all">
+                <i data-lucide="plus" id="plusIcon" class="w-6 h-6 transition-transform duration-500"></i>
             </button>
         </div>
     </nav>
@@ -38,82 +48,89 @@
     <main class="max-w-2xl mx-auto p-6">
         
         <!-- 新增紀錄表單 -->
-        <div id="repairForm" class="hidden bg-white rounded-[2rem] card-shadow p-8 mb-10 border border-orange-50 animate-in fade-in slide-in-from-top-4">
-            <h2 class="text-lg font-bold text-stone-800 mb-6 flex items-center gap-2 italic">
-                ✨ 寫下今天的維修小記...
-            </h2>
+        <div id="repairForm" class="hidden glass-card rounded-[2.5rem] p-8 mb-10 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="h-1 w-12 matcha-gradient rounded-full"></div>
+                <h2 class="text-lg font-bold italic">紀錄此刻的修護...</h2>
+            </div>
             
             <form onsubmit="saveRecord(event)" class="space-y-5">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-stone-400 ml-1">廠別</label>
-                        <input type="text" id="f_factory" placeholder="在哪個廠區？" class="w-full bg-stone-50 rounded-2xl p-3.5" required>
+                        <label class="text-[11px] font-extrabold ml-2 opacity-60">廠別</label>
+                        <input type="text" id="f_factory" placeholder="在哪個分廠？" class="w-full bg-white/50 p-4" required>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-stone-400 ml-1">日期</label>
-                        <input type="date" id="f_date" class="w-full bg-stone-50 rounded-2xl p-3.5 text-stone-500">
+                        <label class="text-[11px] font-extrabold ml-2 opacity-60">日期</label>
+                        <input type="date" id="f_date" class="w-full bg-white/50 p-4">
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-stone-400 ml-1">機型</label>
-                        <input type="text" id="f_model" placeholder="設備名稱" class="w-full bg-stone-50 rounded-2xl p-3.5" required>
+                        <label class="text-[11px] font-extrabold ml-2 opacity-60">機型</label>
+                        <input type="text" id="f_model" placeholder="設備型號" class="w-full bg-white/50 p-4" required>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-stone-400 ml-1">機號 (ID)</label>
-                        <input type="text" id="f_sn" placeholder="設備編號" class="w-full bg-stone-50 rounded-2xl p-3.5">
+                        <label class="text-[11px] font-extrabold ml-2 opacity-60">機號</label>
+                        <input type="text" id="f_sn" placeholder="編號 #" class="w-full bg-white/50 p-4">
                     </div>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-stone-400 ml-1">維修項目</label>
-                    <input type="text" id="f_item" placeholder="例如：零件更換、故障排除" class="w-full bg-stone-50 rounded-2xl p-3.5">
+                    <label class="text-[11px] font-extrabold ml-2 opacity-60">維修項目</label>
+                    <input type="text" id="f_item" placeholder="故障排除、定期保養..." class="w-full bg-white/50 p-4">
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-stone-400 ml-1">維修細節內容</label>
-                    <textarea id="f_content" rows="4" placeholder="今天修了些什麼呢？" class="w-full bg-stone-50 rounded-2xl p-4" required></textarea>
+                    <label class="text-[11px] font-extrabold ml-2 opacity-60">維修日誌內容</label>
+                    <textarea id="f_content" rows="4" placeholder="詳細描述發生的問題與解決過程..." class="w-full bg-white/50 p-4" required></textarea>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-stone-400 ml-1">上傳照片</label>
-                    <div class="relative bg-orange-50 border-2 border-dashed border-orange-200 rounded-[1.5rem] p-6 text-center hover:bg-orange-100 transition cursor-pointer">
+                    <label class="text-[11px] font-extrabold ml-2 opacity-60">現場影像</label>
+                    <div class="relative bg-white/30 border-2 border-dashed border-stone-300 rounded-[2rem] p-8 text-center hover:bg-white/60 transition cursor-pointer group">
                         <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
                         <div id="imgPreviewContainer" class="hidden">
-                            <img id="imgPreview" src="" class="max-h-48 mx-auto rounded-xl shadow-md border-4 border-white">
+                            <img id="imgPreview" src="" class="max-h-56 mx-auto rounded-2xl shadow-lg border-4 border-white">
                         </div>
-                        <div id="uploadPrompt" class="text-orange-300">
-                            <i data-lucide="image" class="w-8 h-8 mx-auto mb-1"></i>
-                            <span class="text-sm font-bold block">點擊拍張照吧！</span>
+                        <div id="uploadPrompt">
+                            <i data-lucide="aperture" class="w-10 h-10 mx-auto mb-2 text-stone-400 group-hover:rotate-90 transition-transform duration-500"></i>
+                            <span class="text-sm font-bold text-stone-400">點擊上傳影像</span>
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full btn-gradient text-white py-4 rounded-2xl font-extrabold shadow-lg hover:opacity-90 transition active:scale-95">
-                    完成記錄 🎉
+                <button type="submit" class="w-full matcha-gradient text-white py-5 rounded-[1.8rem] font-bold shadow-lg shadow-lime-900/20 active:scale-95 transition-all">
+                    存檔紀錄
                 </button>
             </form>
         </div>
 
-        <!-- 搜尋與篩選 -->
-        <div class="flex flex-col gap-4 mb-8">
+        <!-- 搜尋與過濾 -->
+        <div class="space-y-4 mb-10">
             <div class="relative">
-                <i data-lucide="search" class="absolute left-4 top-4 w-5 h-5 text-stone-300"></i>
-                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="想找哪台設備？" class="w-full pl-12 pr-4 py-4 bg-white border-none rounded-[1.5rem] shadow-sm font-medium">
+                <i data-lucide="search" class="absolute left-5 top-5 w-5 h-5 opacity-30"></i>
+                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋設備、機號或內容..." class="w-full pl-14 pr-6 py-5 bg-white rounded-[2rem] shadow-sm border-none font-medium placeholder:text-stone-300">
             </div>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2" id="factoryFilterRow">
-                <!-- 動態生成的廠別標籤 -->
-            </div>
+            <div class="flex gap-2 overflow-x-auto no-scrollbar py-2" id="factoryFilterRow"></div>
         </div>
 
-        <!-- 列表 -->
-        <div id="recordList" class="space-y-4"></div>
+        <!-- 歷史列表 -->
+        <div id="recordList" class="space-y-6"></div>
 
     </main>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('fixie_v3_data')) || [];
+        // 模擬小野 (Hirono) 系列的色調風格頭像 (使用隨機抽象畫佔位)
+        const hironoStyles = [
+            'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Hirono1&backgroundColor=d4e3bb',
+            'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Hirono2&backgroundColor=f2f4ef',
+            'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Hirono3&backgroundColor=e1e8d8',
+            'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Hirono4&backgroundColor=9ab973'
+        ];
+
+        let records = JSON.parse(localStorage.getItem('matcha_hirono_v1')) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
 
@@ -121,9 +138,10 @@
 
         function toggleForm() {
             const form = document.getElementById('repairForm');
-            const plusIcon = document.getElementById('plusIcon');
+            const icon = document.getElementById('plusIcon');
             form.classList.toggle('hidden');
-            plusIcon.style.transform = form.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(45deg)';
+            icon.style.transform = form.classList.contains('hidden') ? 'rotate(0)' : 'rotate(45deg)';
+            if(!form.classList.contains('hidden')) window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         function previewImage(input) {
@@ -144,6 +162,7 @@
             e.preventDefault();
             const newRecord = {
                 id: Date.now(),
+                avatar: hironoStyles[Math.floor(Math.random() * hironoStyles.length)],
                 factory: document.getElementById('f_factory').value.trim(),
                 date: document.getElementById('f_date').value,
                 model: document.getElementById('f_model').value.trim(),
@@ -154,7 +173,7 @@
             };
 
             records.unshift(newRecord);
-            localStorage.setItem('fixie_v3_data', JSON.stringify(records));
+            localStorage.setItem('matcha_hirono_v1', JSON.stringify(records));
             e.target.reset();
             currentImageData = null;
             document.getElementById('imgPreviewContainer').classList.add('hidden');
@@ -165,9 +184,9 @@
 
         function deleteRecord(id, event) {
             event.stopPropagation();
-            if(confirm('確定要刪除這筆可愛的紀錄嗎？')) {
+            if(confirm('要抹除這段時光紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixie_v3_data', JSON.stringify(records));
+                localStorage.setItem('matcha_hirono_v1', JSON.stringify(records));
                 renderRecords();
             }
         }
@@ -183,13 +202,12 @@
 
         function renderRecords() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const listElement = document.getElementById('recordList');
+            const list = document.getElementById('recordList');
             const filterRow = document.getElementById('factoryFilterRow');
             
-            // 更新廠別篩選按鈕
             const factories = ['全部', ...new Set(records.map(r => r.factory))];
             filterRow.innerHTML = factories.map(f => `
-                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-5 py-2 rounded-full font-bold text-sm transition ${selectedFactory === f ? 'bg-pink-400 text-white shadow-md' : 'bg-white text-stone-400'} border border-orange-50">
+                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-6 py-2.5 rounded-2xl font-bold text-xs transition-all ${selectedFactory === f ? 'matcha-gradient text-white shadow-lg' : 'bg-white text-stone-400 shadow-sm'}">
                     ${f}
                 </button>
             `).join('');
@@ -200,41 +218,42 @@
                 return matchSearch && matchFactory;
             });
 
-            listElement.innerHTML = filtered.map(r => `
-                <div class="bg-white rounded-[1.8rem] card-shadow border border-orange-50 overflow-hidden cursor-pointer transition-transform active:scale-[0.99]" onclick="toggleAccordion(this)">
-                    <div class="p-5 flex justify-between items-center">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex gap-2 items-center">
-                                <span class="bg-orange-100 text-orange-500 text-[10px] font-extrabold px-2 py-0.5 rounded-lg uppercase tracking-wider">${r.factory}</span>
-                                <span class="text-stone-300 text-[10px] font-bold">${r.date}</span>
+            list.innerHTML = filtered.map(r => `
+                <div class="glass-card rounded-[2.2rem] overflow-hidden cursor-pointer transition-all hover:shadow-xl shadow-lime-900/5 active:scale-[0.98]" onclick="toggleAccordion(this)">
+                    <div class="p-6 flex items-center gap-4">
+                        <img src="${r.avatar}" class="hirono-avatar bg-white p-1">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-lime-100 text-lime-700 text-[9px] font-extrabold px-2 py-0.5 rounded-lg uppercase">${r.factory}</span>
+                                <span class="text-[10px] font-bold text-stone-300 tracking-tighter">${r.date}</span>
                             </div>
-                            <h3 class="text-stone-700 font-extrabold flex items-center gap-1">
-                                ${r.model} <span class="text-pink-300 text-xs font-normal">#${r.sn}</span>
+                            <h3 class="font-extrabold text-stone-700 truncate flex items-center gap-2">
+                                ${r.model} <span class="text-lime-600/40 font-normal text-xs">#${r.sn}</span>
                             </h3>
-                            <p class="text-pink-400 text-xs font-bold italic">● ${r.item}</p>
+                            <p class="text-[11px] font-bold text-lime-600 opacity-60">🔖 ${r.item}</p>
                         </div>
-                        <i data-lucide="chevron-down" class="arrow-icon w-5 h-5 text-stone-300 transition-transform"></i>
+                        <i data-lucide="chevron-down" class="arrow-icon w-5 h-5 text-stone-200 transition-transform duration-500"></i>
                     </div>
                     
-                    <div class="collapse-content">
-                        <div class="p-5 pt-0 border-t border-orange-50/50">
-                            <div class="bg-stone-50 rounded-2xl p-4 text-sm text-stone-500 leading-relaxed mb-4 whitespace-pre-wrap">
-                                ${r.content}
-                            </div>
-                            ${r.image ? `<img src="${r.image}" class="w-full rounded-2xl border-4 border-white shadow-sm mb-4">` : ''}
-                            <div class="flex justify-end">
-                                <button onclick="deleteRecord(${r.id}, event)" class="flex items-center gap-1 text-stone-300 hover:text-red-300 text-xs font-bold transition">
-                                    <i data-lucide="trash-2" class="w-3 h-3"></i> 刪除紀錄
-                                </button>
-                            </div>
+                    <div class="collapse-content px-6 pb-6">
+                        <div class="bg-white/50 rounded-2xl p-5 text-sm text-stone-600 leading-relaxed mb-5 whitespace-pre-wrap shadow-inner border border-white/50">
+                            ${r.content}
+                        </div>
+                        ${r.image ? `<img src="${r.image}" class="w-full rounded-[1.5rem] border-4 border-white shadow-md mb-5">` : ''}
+                        <div class="flex justify-end">
+                            <button onclick="deleteRecord(${r.id}, event)" class="p-2 text-stone-200 hover:text-red-400 transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             `).join('');
 
-            if(filtered.length === 0) {
-                listElement.innerHTML = `<div class="text-center py-20 opacity-30 font-bold">
-                    <i data-lucide="coffee" class="w-10 h-10 mx-auto mb-2"></i> 沒有紀錄呢...休息一下吧？</div>`;
+            if(!filtered.length) {
+                list.innerHTML = `<div class="text-center py-24 opacity-20 font-bold">
+                    <i data-lucide="wind" class="w-12 h-12 mx-auto mb-3"></i>
+                    這裡安安靜靜的...
+                </div>`;
             }
 
             lucide.createIcons();
