@@ -14,41 +14,24 @@
             --m-prime: #7a944e;
             --m-soft: #f4f7ed;
         }
-        body { 
-            font-family: 'Inter', 'Noto Sans TC', sans-serif; 
-            background-color: var(--m-soft); 
-            color: var(--m-dark);
-        }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: var(--m-soft); color: var(--m-dark); }
         .giant-text { font-size: 1.85rem; line-height: 1.1; font-weight: 900; }
         .glass-card {
             background: white;
             border-radius: 24px;
-            box-shadow: 0 12px 30px -10px rgba(62, 77, 32, 0.1);
-            border: 1px solid rgba(122, 148, 78, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(62, 77, 32, 0.08);
+            border: 1px solid rgba(122, 148, 78, 0.12);
         }
-        .matcha-btn {
-            background: linear-gradient(135deg, #556b2f 0%, #7a944e 100%);
-        }
-        .collapse-content { 
-            max-height: 0; 
-            overflow: hidden; 
-            transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1); 
-            opacity: 0; 
-        }
+        .matcha-btn { background: linear-gradient(135deg, #556b2f 0%, #7a944e 100%); }
+        .collapse-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1); opacity: 0; }
         .is-open .collapse-content { max-height: 2000px; opacity: 1; padding-top: 1.25rem; }
         .is-open .arrow-icon { transform: rotate(180deg); color: var(--m-prime); }
-        
-        input, textarea {
-            background: #fafbf8 !important;
-            border: 1.5px solid #e1e8d5 !important;
-            border-radius: 14px !important;
-        }
+        input, textarea { background: #fafbf8 !important; border: 1.5px solid #e1e8d5 !important; border-radius: 14px !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="pb-24">
 
-    <!-- Header -->
     <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200/50 px-6 h-18 flex justify-between items-center shadow-sm">
         <h1 class="text-2xl font-black italic tracking-tighter text-stone-800">FIX<span class="text-[#7a944e]">LOG</span></h1>
         <button onclick="toggleForm()" class="matcha-btn text-white w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
@@ -58,13 +41,9 @@
 
     <main class="max-w-2xl mx-auto p-4 mt-4">
         
-        <!-- 表單 -->
+        <!-- 表單區 -->
         <div id="repairForm" class="hidden glass-card p-8 mb-10 animate-in fade-in zoom-in duration-300">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-black">建立查修紀錄</h2>
-                <div class="h-1 w-12 bg-[#7a944e] rounded-full"></div>
-            </div>
-            
+            <h2 class="text-2xl font-black mb-8">建立查修紀錄</h2>
             <form onsubmit="saveRecord(event)" class="space-y-5">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
@@ -76,7 +55,6 @@
                         <input type="datetime-local" id="f_datetime" class="p-4 text-sm font-bold">
                     </div>
                 </div>
-                
                 <div class="grid grid-cols-3 gap-4">
                     <div class="col-span-2 flex flex-col gap-1.5">
                         <label class="text-xs font-black uppercase text-stone-400 ml-1">機型</label>
@@ -87,58 +65,41 @@
                         <input type="text" id="f_sn" placeholder="ID#" class="p-4">
                     </div>
                 </div>
-
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-black uppercase text-stone-400 ml-1">維修項目</label>
                     <input type="text" id="f_item" placeholder="故障主旨" class="p-4">
                 </div>
-
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-black uppercase text-stone-400 ml-1">維修詳情</label>
                     <textarea id="f_content" rows="4" placeholder="輸入處理過程..." class="p-4" required></textarea>
                 </div>
-
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">現場照片</label>
-                    <div class="relative bg-stone-50 border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center hover:bg-stone-100 transition cursor-pointer group">
+                    <label class="text-xs font-black uppercase text-stone-400 ml-1">照片附件</label>
+                    <div class="relative bg-stone-50 border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center hover:bg-stone-100 transition cursor-pointer">
                         <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
-                        <div id="imgPreviewContainer" class="hidden">
-                            <img id="imgPreview" src="" class="max-h-56 mx-auto rounded-xl shadow-md">
-                        </div>
-                        <div id="uploadPrompt" class="text-stone-400 font-bold">
-                            <i data-lucide="image-plus" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
-                            <span class="text-sm">點擊上傳影像</span>
-                        </div>
+                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-56 mx-auto rounded-xl shadow-md"></div>
+                        <div id="uploadPrompt" class="text-stone-400 font-bold"><i data-lucide="image-plus" class="w-8 h-8 mx-auto mb-2 opacity-50"></i><span>上傳影像</span></div>
                     </div>
                 </div>
-
-                <button type="submit" class="w-full matcha-btn text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-[0.98] transition-all">
-                    儲存日誌
-                </button>
+                <button type="submit" class="w-full matcha-btn text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-[0.98] transition-all">儲存日誌</button>
             </form>
         </div>
 
-        <!-- 搜尋 -->
         <div class="mb-8 space-y-4">
             <div class="relative">
                 <i data-lucide="search" class="absolute left-5 top-5 w-5 h-5 text-stone-300"></i>
-                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋設備、機號、內容..." class="w-full pl-14 pr-6 py-5 border-none shadow-sm rounded-[1.5rem] bg-white font-bold text-stone-700">
+                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋關鍵字..." class="w-full pl-14 pr-6 py-5 border-none shadow-sm rounded-[1.5rem] bg-white font-bold text-stone-700">
             </div>
             <div class="flex gap-2 overflow-x-auto no-scrollbar" id="factoryFilterRow"></div>
         </div>
 
-        <!-- 列表 -->
         <div id="recordList" class="space-y-4"></div>
-
     </main>
 
-    <!-- 吐司通知 (Toast) -->
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-opacity pointer-events-none z-[100]">
-        已複製到剪貼簿 ✨
-    </div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100]">已複製到剪貼簿 ✨</div>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('fixlog_v6_data')) || [];
+        let records = JSON.parse(localStorage.getItem('fixlog_v7_data')) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
 
@@ -170,16 +131,26 @@
             }
         }
 
+        // 修正後的分享函數
         function shareRecord(id, event) {
-            event.stopPropagation();
+            // 重要：阻止事件向上冒泡，防止觸發兩次或展開卡片
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
             const r = records.find(x => x.id === id);
             if(!r) return;
+            
             const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n機型：${r.model}\n機號：${r.sn}\n項目：${r.item}\n內容：${r.content}`;
             
+            // 使用更現代的 API 複製
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
-                toast.classList.remove('opacity-0');
-                setTimeout(() => toast.classList.add('opacity-0'), 2000);
+                toast.classList.replace('opacity-0', 'opacity-100');
+                setTimeout(() => toast.classList.replace('opacity-100', 'opacity-0'), 1500);
+            }).catch(err => {
+                console.error('無法複製', err);
             });
         }
 
@@ -196,7 +167,7 @@
                 image: currentImageData
             };
             records.unshift(newRecord);
-            localStorage.setItem('fixlog_v6_data', JSON.stringify(records));
+            localStorage.setItem('fixlog_v7_data', JSON.stringify(records));
             e.target.reset();
             currentImageData = null;
             document.getElementById('imgPreviewContainer').classList.add('hidden');
@@ -209,7 +180,7 @@
             event.stopPropagation();
             if(confirm('確定刪除？')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_v6_data', JSON.stringify(records));
+                localStorage.setItem('fixlog_v7_data', JSON.stringify(records));
                 renderRecords();
             }
         }
@@ -237,26 +208,23 @@
                     <div class="p-5">
                         <div class="flex justify-between items-center mb-3">
                             <div class="flex items-center gap-2">
-                                <!-- 廠別優化：深色標籤更醒目 -->
-                                <span class="text-[11px] font-black bg-[#556b2f] text-white px-3 py-1 rounded-full uppercase tracking-tighter shadow-sm">${r.factory}</span>
+                                <span class="text-[11px] font-black bg-[#556b2f] text-white px-3 py-1 rounded-full tracking-tighter shadow-sm">${r.factory}</span>
                                 <span class="text-[10px] font-bold text-stone-300">${r.datetime}</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <!-- 分享連結 -->
-                                <button onclick="shareRecord(${r.id}, event)" class="p-2 hover:bg-stone-100 rounded-full text-[#7a944e] transition-colors">
+                                <!-- 分享按鈕：加上 onclick 阻斷與 type 聲明 -->
+                                <button type="button" onclick="shareRecord(${r.id}, event)" class="p-2 hover:bg-stone-100 rounded-full text-[#7a944e] transition-all active:scale-90">
                                     <i data-lucide="share-2" class="w-5 h-5"></i>
                                 </button>
                                 <i data-lucide="chevron-down" class="arrow-icon w-5 h-5 text-stone-300 transition-transform"></i>
                             </div>
                         </div>
                         
-                        <div class="giant-text text-stone-800 mb-2">
+                        <div class="giant-text text-stone-800 mb-2 flex items-baseline flex-wrap">
                             <span>${r.model}</span>
-                            <!-- 機號優化：深抹茶色斜體 -->
                             <span class="text-[#556b2f] text-2xl font-bold ml-2 opacity-80 italic">#${r.sn}</span>
                         </div>
                         
-                        <!-- 維修項目優化：字體加大並加深顏色 -->
                         <div class="text-[15px] font-black text-[#7a944e] flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#7a944e]"></span>
                             ${r.item}
@@ -276,7 +244,6 @@
                     </div>
                 </div>
             `).join('');
-
             lucide.createIcons();
         }
 
