@@ -10,7 +10,7 @@
     <style>
         :root { --ios-bg: #f2f2f7; --ios-card: #ffffff; --apple-green: #435b31; }
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", sans-serif; background-color: var(--ios-bg); color: #000; -webkit-font-smoothing: antialiased; }
-        .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.02); transition: all 0.2s ease; }
+        .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.02); transition: all 0.2s ease; position: relative; }
         .ios-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
         .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
         .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
@@ -19,15 +19,13 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .btn-active:active { transform: scale(0.95); opacity: 0.7; }
         
-        /* 關鍵修正：透明日期選擇器覆蓋層 */
-        .datepicker-overlay {
+        /* 隱藏但保持功能的輸入框 */
+        .hidden-input {
             position: absolute;
-            inset: 0;
+            width: 1px;
+            height: 1px;
             opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            -webkit-appearance: none;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -44,28 +42,28 @@
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        <!-- 月會提醒區塊 -->
-        <section class="mb-8 relative">
+        <!-- 月會提醒區塊 (重構點擊邏輯) -->
+        <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
                 <div class="flex gap-2">
-                    <button onclick="resetMeetingDate()" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full z-10 relative">恢復自動</button>
+                    <button onclick="resetMeetingDate()" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full z-20">恢復自動</button>
                     <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
                 </div>
             </div>
             
-            <div class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center relative overflow-hidden">
-                <!-- 真正的日期輸入框，透明並覆蓋整個卡片 -->
-                <input type="date" class="datepicker-overlay" onchange="handleManualDate(this.value)">
+            <!-- 使用 label 封裝，點擊卡片任何地方都會觸發裡面的 input -->
+            <label for="meetingPicker" class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center cursor-pointer active:bg-stone-50 block">
+                <input type="date" id="meetingPicker" class="hidden-input" onchange="handleManualDate(this.value)">
                 
                 <div>
-                    <p class="text-2xl font-bold tracking-tight" id="meetingDateText">--/--</p>
-                    <p id="meetingStatus" class="text-xs text-stone-400 mt-1 font-medium">點擊此處手動調整日期</p>
+                    <p class="text-2xl font-bold tracking-tight text-stone-900" id="meetingDateText">--/--</p>
+                    <p id="meetingStatus" class="text-[11px] text-stone-400 mt-1 font-medium italic">點擊卡片手動變更日期</p>
                 </div>
-                <div class="bg-stone-50 p-3 rounded-2xl">
+                <div class="bg-stone-50 p-3 rounded-2xl pointer-events-none">
                     <i data-lucide="calendar-days" class="w-6 h-6 text-[#435b31]"></i>
                 </div>
-            </div>
+            </label>
         </section>
 
         <!-- 搜尋列 -->
@@ -78,13 +76,10 @@
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
         <div id="recordList" class="space-y-3"></div>
 
-        <section class="rounded-2xl bg-stone-100/50 p-4 mt-8">
-            <div class="flex gap-3">
-                <i data-lucide="shield-alert" class="w-5 h-5 text-stone-400"></i>
-                <p class="text-[11px] text-stone-400 leading-relaxed">
-                    <b>隱私提醒：</b>紀錄儲存在手機本端。清除 Cookie 將遺失資料，請定期複製重要紀錄。
-                </p>
-            </div>
+        <section class="rounded-2xl bg-stone-200/40 p-4 mt-8">
+            <p class="text-[10px] text-stone-400 leading-relaxed text-center">
+                維修資料儲存於手機瀏覽器，清除快取將遺失。
+            </p>
         </section>
     </main>
 
@@ -127,7 +122,7 @@
         let selectedFactory = '全部';
         let editModeId = null;
 
-        // --- 月會調整 (修正手機點擊) ---
+        // --- 月會調整 (iOS 深度優化版) ---
         function handleManualDate(val) {
             if(!val) return;
             localStorage.setItem('fixlog_manual_meeting', val);
@@ -135,7 +130,8 @@
             showToast("📅 月會日期已更新");
         }
 
-        function resetMeetingDate() {
+        function resetMeetingDate(e) {
+            if(e) e.stopPropagation(); // 防止觸發 label 的點擊
             localStorage.removeItem('fixlog_manual_meeting');
             updateMeeting();
             showToast("🔄 已恢復自動計算");
@@ -167,7 +163,7 @@
             else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full"; }
         }
 
-        // --- 其他核心邏輯 ---
+        // --- 以下其餘邏輯維持不變 ---
         function openFormForAdd() {
             editModeId = null; document.querySelector('form').reset();
             document.getElementById('formTitle').innerText = "新紀錄";
