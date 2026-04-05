@@ -12,22 +12,20 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", sans-serif; background-color: var(--ios-bg); color: #000; -webkit-font-smoothing: antialiased; }
         .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.02); transition: all 0.2s ease; }
         .ios-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
-        
         .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
         .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
         .is-open .arrow-icon { transform: rotate(90deg); }
         .inner-content { overflow: hidden; }
-        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .btn-active:active { transform: scale(0.95); opacity: 0.7; }
-        
-        /* 注意事項樣式 */
         .notice-box { border-radius: 16px; background: rgba(0,0,0,0.03); padding: 16px; margin-top: 40px; margin-bottom: 20px; }
+        
+        /* 隱藏原生日期輸入框但保持可觸發 */
+        #hiddenDatePicker { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
     </style>
 </head>
 <body class="pb-10">
 
-    <!-- 導覽列 -->
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
         <div class="flex flex-col">
             <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統</span>
@@ -39,22 +37,29 @@
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        <!-- 月會提醒 -->
+        <!-- 月會提醒 (點擊可修改) -->
         <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
-                <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
+                <div class="flex gap-2">
+                    <button onclick="resetMeetingDate()" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">恢復自動</button>
+                    <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
+                </div>
             </div>
-            <div class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center">
+            <!-- 點擊此卡片觸發日期選擇器 -->
+            <div onclick="triggerDatePicker()" class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center cursor-pointer active:bg-stone-50 transition-colors relative">
                 <div>
                     <p class="text-2xl font-bold tracking-tight" id="meetingDateText">--/--</p>
-                    <p id="meetingStatus" class="text-xs text-stone-400 mt-1 font-medium">載入中...</p>
+                    <p id="meetingStatus" class="text-xs text-stone-400 mt-1 font-medium italic">點擊日曆可手動調整日期</p>
                 </div>
-                <div class="bg-stone-50 p-3 rounded-2xl"><i data-lucide="calendar-days" class="w-6 h-6 text-[#435b31]"></i></div>
+                <div class="bg-stone-50 p-3 rounded-2xl">
+                    <i data-lucide="calendar-days" class="w-6 h-6 text-[#435b31]"></i>
+                </div>
+                <!-- 隱藏的輸入框 -->
+                <input type="date" id="hiddenDatePicker" onchange="handleManualDate(this.value)">
             </div>
         </section>
 
-        <!-- 搜尋列 -->
         <div class="mb-6 relative">
             <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400"></i>
             <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄..." 
@@ -62,24 +67,22 @@
         </div>
 
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
-        
         <div id="recordList" class="space-y-3"></div>
 
-        <!-- 1. 增加注意事項欄位 (Apple 腳註風格) -->
-        <section class="notice-box">
+        <section class="notice-box text-stone-400">
             <div class="flex items-start gap-3">
-                <i data-lucide="shield-alert" class="w-5 h-5 text-stone-400 mt-0.5"></i>
+                <i data-lucide="shield-alert" class="w-5 h-5 mt-0.5"></i>
                 <div class="flex-1">
-                    <h4 class="text-xs font-bold text-stone-500 mb-1">隱私與數據說明</h4>
-                    <p class="text-[11px] leading-relaxed text-stone-400">
-                        本系統為隱私優先設計。所有維修紀錄與照片均直接儲存在您的<span class="text-stone-600 font-semibold underline decoration-stone-300">手機本端瀏覽器</span>中，並未上傳至伺服器。請注意：若您<span class="text-red-400 font-semibold">清除瀏覽器快取 (Cookies) 或更換設備</span>，所有紀錄將會永久遗失，建議定期將重要紀錄複製備份。
+                    <h4 class="text-xs font-bold mb-1">隱私與數據說明</h4>
+                    <p class="text-[11px] leading-relaxed">
+                        本系統紀錄均儲存在<span class="text-stone-600 font-semibold underline">本機瀏覽器</span>。清除 Cookie 或更換設備將使紀錄消失。
                     </p>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- 抽屜式表單 -->
+    <!-- 表單 (新增/修改) -->
     <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
         <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto shadow-2xl">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
@@ -92,7 +95,7 @@
                 <div class="ios-card p-1">
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">廠別</span>
-                        <input type="text" id="f_factory" placeholder="分廠名稱" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
+                        <input type="text" id="f_factory" placeholder="分廠" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
                     </div>
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">時間</span>
@@ -100,17 +103,17 @@
                     </div>
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">機型</span>
-                        <input type="text" id="f_model" placeholder="機台型號" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
+                        <input type="text" id="f_model" placeholder="型號" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
                     </div>
                     <div class="flex p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">機號</span>
-                        <input type="text" id="f_sn" placeholder="編號/ID" class="flex-1 outline-none font-medium text-sm bg-transparent">
+                        <input type="text" id="f_sn" placeholder="ID" class="flex-1 outline-none font-medium text-sm bg-transparent">
                     </div>
                 </div>
 
                 <div class="ios-card p-4">
-                    <input type="text" id="f_item" placeholder="維修項目 (主旨)" class="w-full outline-none font-medium text-sm bg-transparent mb-3 border-b border-stone-100 pb-3">
-                    <textarea id="f_content" rows="4" placeholder="請描述處理細節..." class="w-full outline-none font-medium text-sm bg-transparent" required></textarea>
+                    <input type="text" id="f_item" placeholder="維修項目主旨" class="w-full outline-none font-medium text-sm bg-transparent mb-3 border-b border-stone-100 pb-3">
+                    <textarea id="f_content" rows="4" placeholder="細節..." class="w-full outline-none font-medium text-sm bg-transparent" required></textarea>
                 </div>
 
                 <div class="flex gap-3">
@@ -127,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Toast 提示列 -->
     <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white shadow-2xl border border-stone-100 px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 opacity-0 transition-all z-[200]">提示文字</div>
 
     <script>
@@ -136,24 +138,77 @@
         let selectedFactory = '全部';
         let editModeId = null;
 
-        // --- 表單邏輯 ---
+        // --- 月會日期手動調整邏輯 ---
+        function triggerDatePicker() {
+            document.getElementById('hiddenDatePicker').showPicker();
+        }
+
+        function handleManualDate(val) {
+            if(!val) return;
+            localStorage.setItem('fixlog_manual_meeting', val);
+            updateMeeting();
+            showToast("📅 月會日期已手動更新");
+        }
+
+        function resetMeetingDate() {
+            localStorage.removeItem('fixlog_manual_meeting');
+            updateMeeting();
+            showToast("🔄 已恢復自動計算");
+        }
+
+        function updateMeeting() {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            let target;
+            
+            const manualDate = localStorage.getItem('fixlog_manual_meeting');
+            const resetBtn = document.getElementById('resetMeetingBtn');
+
+            if (manualDate) {
+                target = new Date(manualDate);
+                target.setHours(0,0,0,0);
+                resetBtn.classList.remove('hidden');
+                document.getElementById('meetingStatus').innerText = "📍 目前為手動設定日期";
+            } else {
+                // 自動計算邏輯 (本週五或下月五號)
+                const currentDay = now.getDay();
+                const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
+                target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
+                target.setHours(0,0,0,0);
+                resetBtn.classList.add('hidden');
+                document.getElementById('meetingStatus').innerText = "✨ 自動計算：本週五開會";
+            }
+
+            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
+            const diff = Math.ceil((target - now) / 86400000);
+            
+            if (diff === 0) {
+                document.getElementById('daysCount').innerText = "今天";
+                document.getElementById('daysCount').className = "text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full";
+            } else if (diff < 0) {
+                document.getElementById('daysCount').innerText = `已過 ${Math.abs(diff)} 天`;
+                document.getElementById('daysCount').className = "text-[10px] font-bold bg-stone-200 text-stone-500 px-2 py-0.5 rounded-full";
+            } else {
+                document.getElementById('daysCount').innerText = `剩餘 ${diff} 天`;
+                document.getElementById('daysCount').className = "text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full";
+            }
+        }
+
+        // --- 其餘功能保持不變 ---
         function openFormForAdd() {
-            editModeId = null;
-            document.querySelector('form').reset();
+            editModeId = null; document.querySelector('form').reset();
             document.getElementById('formTitle').innerText = "新紀錄";
             document.getElementById('saveBtn').innerText = "儲存紀錄";
             currentImageData = null;
             document.getElementById('imgPreviewContainer').classList.add('hidden');
             document.getElementById('uploadPrompt').classList.remove('hidden');
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
+            const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
+            document.getElementById('f_datetime').value = n.toISOString().slice(0, 16);
             document.getElementById('repairForm').classList.remove('hidden');
         }
 
         function openFormForEdit(id) {
-            const r = records.find(x => x.id === id);
-            if (!r) return;
+            const r = records.find(x => x.id === id); if (!r) return;
             editModeId = id;
             document.getElementById('formTitle').innerText = "編輯紀錄";
             document.getElementById('saveBtn').innerText = "更新紀錄";
@@ -164,13 +219,11 @@
             document.getElementById('f_item').value = r.item;
             document.getElementById('f_content').value = r.content;
             if (r.image) {
-                currentImageData = r.image;
-                document.getElementById('imgPreview').src = r.image;
+                currentImageData = r.image; document.getElementById('imgPreview').src = r.image;
                 document.getElementById('imgPreviewContainer').classList.remove('hidden');
                 document.getElementById('uploadPrompt').classList.add('hidden');
             } else {
-                currentImageData = null;
-                document.getElementById('imgPreviewContainer').classList.add('hidden');
+                currentImageData = null; document.getElementById('imgPreviewContainer').classList.add('hidden');
                 document.getElementById('uploadPrompt').classList.remove('hidden');
             }
             document.getElementById('repairForm').classList.remove('hidden');
@@ -178,22 +231,18 @@
 
         function closeForm() { document.getElementById('repairForm').classList.add('hidden'); }
 
-        // --- 核心邏輯：圖片壓縮與防爆 ---
         function processImage(input) {
-            const file = input.files[0];
-            if (!file) return;
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    let width = img.width; let height = img.height;
-                    const max = 800;
-                    if (width > height && width > max) { height *= max / width; width = max; }
-                    else if (height > max) { width *= max / height; height = max; }
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    let w = img.width, h = img.height, max = 800;
+                    if (w > h && w > max) { h *= max / w; w = max; }
+                    else if (h > max) { w *= max / h; h = max; }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
                     currentImageData = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('imgPreview').src = currentImageData;
                     document.getElementById('imgPreviewContainer').classList.remove('hidden');
@@ -204,12 +253,9 @@
             reader.readAsDataURL(file);
         }
 
-        // --- 儲存與修改 ---
         function saveRecord(e) {
-            e.preventDefault();
-            const btn = document.getElementById('saveBtn');
-            btn.disabled = true;
-            const rData = {
+            e.preventDefault(); const btn = document.getElementById('saveBtn'); btn.disabled = true;
+            const d = {
                 factory: document.getElementById('f_factory').value.trim(),
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
                 model: document.getElementById('f_model').value.trim(),
@@ -220,35 +266,32 @@
             };
             try {
                 if (editModeId) {
-                    const index = records.findIndex(x => x.id === editModeId);
-                    records[index] = { ...records[index], ...rData };
+                    const i = records.findIndex(x => x.id === editModeId);
+                    records[i] = { ...records[i], ...d };
                     showToast("✅ 紀錄已更新");
                 } else {
-                    const newR = { id: "ID" + Date.now(), ...rData };
-                    records.unshift(newR);
+                    records.unshift({ id: "ID" + Date.now(), ...d });
                     showToast("✅ 已儲存新紀錄");
                 }
                 localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
                 closeForm(); renderRecords();
-            } catch (err) {
-                alert("手機空間不足，請刪除部分舊紀錄！");
-            } finally { btn.disabled = false; }
+            } catch (err) { alert("儲存空間不足！"); } finally { btn.disabled = false; }
         }
 
         function deleteRecord(id, event) {
             event.stopPropagation();
-            if(confirm('確定要永久刪除此紀錄嗎？')) {
+            if(confirm('確定刪除？')) {
                 records = records.filter(r => r.id !== id);
                 localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
-                renderRecords(); showToast("🗑 紀錄已刪除");
+                renderRecords(); showToast("🗑 已刪除");
             }
         }
 
         function shareRecord(id, event) {
             event.stopPropagation();
             const r = records.find(x => x.id === id);
-            const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備機型：${r.model}\n機台編號：${r.sn}\n維修項目：${r.item}\n處理內容：${r.content}`;
-            navigator.clipboard.writeText(text).then(() => showToast("📋 內容已複製到剪貼簿"));
+            const t = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model}\n編號：${r.sn}\n項目：${r.item}\n內容：${r.content}`;
+            navigator.clipboard.writeText(t).then(() => showToast("📋 已複製"));
         }
 
         function showToast(msg) {
@@ -258,20 +301,20 @@
         }
 
         function renderRecords() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
+            const s = document.getElementById('searchInput').value.toLowerCase();
             const list = document.getElementById('recordList');
-            const filterRow = document.getElementById('factoryFilterRow');
-            const factories = ['全部', ...new Set(records.map(r => r.factory))];
-            filterRow.innerHTML = factories.map(f => `
+            const fr = document.getElementById('factoryFilterRow');
+            const facs = ['全部', ...new Set(records.map(r => r.factory))];
+            fr.innerHTML = facs.map(f => `
                 <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}">
                     ${f}
                 </button>
             `).join('');
-            const filtered = records.filter(r => {
-                const match = r.model.toLowerCase().includes(search) || r.content.toLowerCase().includes(search) || r.sn.toLowerCase().includes(search) || r.factory.toLowerCase().includes(search);
-                return match && (selectedFactory === '全部' || r.factory === selectedFactory);
+            const res = records.filter(r => {
+                const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.sn.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s);
+                return m && (selectedFactory === '全部' || r.factory === selectedFactory);
             });
-            list.innerHTML = filtered.map(r => `
+            list.innerHTML = res.map(r => `
                 <div class="ios-card overflow-hidden mb-3" onclick="this.classList.toggle('is-open')">
                     <div class="p-5">
                         <div class="flex justify-between items-center mb-1">
@@ -300,17 +343,6 @@
 
         function setFilter(f) { selectedFactory = f; renderRecords(); }
         
-        function updateMeeting() {
-            const now = new Date();
-            const currentDay = now.getDay();
-            const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
-            const target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
-            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
-            const diff = Math.ceil((target.setHours(0,0,0,0) - now.setHours(0,0,0,0)) / 86400000);
-            document.getElementById('daysCount').innerText = diff === 0 ? "今天" : `剩餘 ${diff} 天`;
-            document.getElementById('meetingStatus').innerText = diff === 0 ? "今天開會，請準備資料。" : "本週五預定開會。";
-        }
-
         updateMeeting(); renderRecords(); lucide.createIcons();
     </script>
 </body>
