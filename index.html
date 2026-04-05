@@ -3,105 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FixLog | 專業查修</title>
+    <title>FixLog | 專業查修系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- 使用類似 Apple 的字體層級 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --ios-bg: #f2f2f7; --ios-card: #ffffff; --apple-green: #34c759; --apple-gray: #8e8e93; }
+        :root { --ios-bg: #f2f2f7; --ios-card: #ffffff; --apple-green: #435b31; }
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", sans-serif; background-color: var(--ios-bg); color: #000; -webkit-font-smoothing: antialiased; }
-        
-        /* Apple 著名的 Squircle 圓角 */
-        .ios-card {
-            background: var(--ios-card);
-            border-radius: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: 0.5px solid rgba(0,0,0,0.05);
-        }
-        .ios-card:active { transform: scale(0.98); background-color: #f9f9f9; }
-
-        /* 導覽列模糊效果 */
-        .ios-nav {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-        }
-
-        /* 隱藏捲軸但保持功能 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        .collapse-content { 
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.3s ease, opacity 0.2s ease;
-            opacity: 0;
-        }
+        .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.05); }
+        .ios-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+        .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
         .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
         .inner-content { overflow: hidden; }
-
-        /* 抹茶綠 Apple 化：偏向更自然的森林綠 */
-        .accent-text { color: #435b31; }
-        .accent-bg { background-color: #435b31; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="pb-20">
 
-    <!-- iOS 风格導覽列 -->
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
         <div class="flex flex-col">
             <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系统</span>
             <h1 class="text-xl font-bold tracking-tight">查修日誌</h1>
         </div>
-        <button onclick="toggleForm()" class="accent-bg text-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm active:opacity-70 transition-opacity">
+        <button onclick="toggleForm()" class="bg-[#435b31] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm active:opacity-70 transition-opacity">
             <i data-lucide="plus" class="w-6 h-6"></i>
         </button>
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        
-        <!-- 月會提示：簡約到極致 -->
-        <section id="meetingAlert" class="mb-8">
+        <!-- 月會提示 -->
+        <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
-                <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">載入中</span>
+                <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
             </div>
-            <div class="ios-card p-5 border-l-4 border-[#435b31]">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-2xl font-bold tracking-tight" id="meetingDateText">--/--</p>
-                        <p id="meetingStatus" class="text-xs text-stone-400 mt-1 font-medium italic">準備好本週的數據摘要了嗎？</p>
-                    </div>
-                    <div class="bg-stone-50 p-3 rounded-2xl">
-                        <i data-lucide="calendar-days" class="w-6 h-6 text-[#435b31]"></i>
-                    </div>
+            <div class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center">
+                <div>
+                    <p class="text-2xl font-bold tracking-tight" id="meetingDateText">--/--</p>
+                    <p id="meetingStatus" class="text-xs text-stone-400 mt-1 font-medium">載入中...</p>
                 </div>
+                <div class="bg-stone-50 p-3 rounded-2xl"><i data-lucide="calendar-days" class="w-6 h-6 text-[#435b31]"></i></div>
             </div>
         </section>
 
-        <!-- 搜尋列：iOS 控制中心風格 -->
-        <div class="mb-6 relative group">
+        <!-- 搜尋列 -->
+        <div class="mb-6 relative">
             <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400"></i>
             <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄..." 
                 class="w-full bg-stone-200/50 border-none px-10 py-3 rounded-2xl text-md focus:bg-white transition-all outline-none">
         </div>
 
-        <!-- 快速過濾列 -->
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
-
-        <!-- 紀錄清單 -->
-        <div class="flex justify-between items-center mb-3 px-1">
-            <h3 class="text-sm font-semibold text-stone-500">最近維修項目</h3>
-        </div>
         <div id="recordList" class="space-y-3"></div>
     </main>
 
-    <!-- iOS 风格抽屜表單 -->
-    <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm">
-        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-8 animate-in slide-in-from-bottom duration-300">
+    <!-- 表單 -->
+    <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
+        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[90vh] overflow-y-auto">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
-            <div class="flex justify-between items-center mb-8">
+            <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">新紀錄</h2>
                 <button onclick="toggleForm()" class="text-blue-600 font-semibold">取消</button>
             </div>
@@ -109,49 +69,49 @@
             <form onsubmit="saveRecord(event)" class="space-y-4">
                 <div class="ios-card p-1">
                     <div class="flex border-b border-stone-100 p-4">
-                        <span class="w-24 text-stone-400 font-medium text-sm">廠別</span>
-                        <input type="text" id="f_factory" placeholder="例如：一廠" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
+                        <span class="w-20 text-stone-400 font-medium text-sm">廠別</span>
+                        <input type="text" id="f_factory" placeholder="分廠名稱" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
                     </div>
                     <div class="flex border-b border-stone-100 p-4">
-                        <span class="w-24 text-stone-400 font-medium text-sm">時間</span>
+                        <span class="w-20 text-stone-400 font-medium text-sm">時間</span>
                         <input type="datetime-local" id="f_datetime" class="flex-1 outline-none font-medium text-sm bg-transparent">
                     </div>
                     <div class="flex border-b border-stone-100 p-4">
-                        <span class="w-24 text-stone-400 font-medium text-sm">機型</span>
-                        <input type="text" id="f_model" placeholder="機台名稱" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
+                        <span class="w-20 text-stone-400 font-medium text-sm">機型</span>
+                        <input type="text" id="f_model" placeholder="機台型號" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
                     </div>
                     <div class="flex p-4">
-                        <span class="w-24 text-stone-400 font-medium text-sm">機號</span>
+                        <span class="w-20 text-stone-400 font-medium text-sm">機號</span>
                         <input type="text" id="f_sn" placeholder="ID" class="flex-1 outline-none font-medium text-sm bg-transparent">
                     </div>
                 </div>
 
                 <div class="ios-card p-4">
-                    <input type="text" id="f_item" placeholder="維修項目主旨" class="w-full outline-none font-medium text-sm bg-transparent mb-3 border-b border-stone-100 pb-3">
+                    <input type="text" id="f_item" placeholder="維修項目 (主旨)" class="w-full outline-none font-medium text-sm bg-transparent mb-3 border-b border-stone-100 pb-3">
                     <textarea id="f_content" rows="4" placeholder="請描述處理細節..." class="w-full outline-none font-medium text-sm bg-transparent" required></textarea>
                 </div>
 
-                <div class="flex gap-4">
-                    <div class="flex-1 relative ios-card p-4 text-center cursor-pointer hover:bg-stone-50">
-                        <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
-                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-20 mx-auto rounded-lg"></div>
+                <div class="flex gap-3">
+                    <div class="flex-1 relative ios-card p-4 text-center cursor-pointer hover:bg-stone-50 overflow-hidden">
+                        <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processImage(this)">
+                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded"></div>
                         <div id="uploadPrompt" class="text-stone-400 text-xs font-bold flex flex-col items-center gap-1">
                             <i data-lucide="camera" class="w-5 h-5"></i><span>加入照片</span>
                         </div>
                     </div>
-                    <button type="submit" class="flex-[2] accent-bg text-white py-4 rounded-2xl text-lg font-bold shadow-lg">儲存紀錄</button>
+                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl text-lg font-bold shadow-lg active:opacity-80">儲存紀錄</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 蘋果風格 Toast -->
-    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white shadow-xl border border-stone-100 px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 opacity-0 transition-all z-[200]">
-        <i data-lucide="check-circle-2" class="text-green-500 w-4 h-4"></i> 已複製到剪貼簿
-    </div>
+    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white shadow-xl border border-stone-100 px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 opacity-0 transition-all z-[200]">已複製到剪貼簿</div>
 
     <script>
-        // 月會邏輯 (本週五後改為每月一次)
+        let records = JSON.parse(localStorage.getItem('fixlog_v12_stable')) || [];
+        let currentImageData = null;
+        let selectedFactory = '全部';
+
         function updateMeeting() {
             const now = new Date();
             let target;
@@ -169,16 +129,12 @@
                 let firstDay = nextM.getDay();
                 let firstFri = (firstDay <= 5) ? (5 - firstDay) : (12 - firstDay);
                 target = new Date(nextM.getTime() + (firstFri + 7) * 24 * 60 * 60 * 1000);
-                document.getElementById('meetingStatus').innerText = "下次月會預告。";
+                document.getElementById('meetingStatus').innerText = "下月會議預告。";
             }
             document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
             const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
             document.getElementById('daysCount').innerText = diff === 0 ? "今天" : `剩餘 ${diff} 天`;
         }
-
-        let records = JSON.parse(localStorage.getItem('fixlog_apple_data')) || [];
-        let currentImageData = null;
-        let selectedFactory = '全部';
 
         function toggleForm() {
             document.getElementById('repairForm').classList.toggle('hidden');
@@ -189,24 +145,42 @@
             }
         }
 
-        function previewImage(input) {
+        // 核心：壓縮圖片邏輯，防止 LocalStorage 崩潰
+        function processImage(input) {
             const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    currentImageData = e.target.result;
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max = 800; // 最大解析度
+                    if (width > height && width > max) { height *= max / width; width = max; }
+                    else if (height > max) { width *= max / height; height = max; }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    currentImageData = canvas.toDataURL('image/jpeg', 0.6); // 壓縮品質 0.6
                     document.getElementById('imgPreview').src = currentImageData;
                     document.getElementById('imgPreviewContainer').classList.remove('hidden');
                     document.getElementById('uploadPrompt').classList.add('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         function saveRecord(e) {
             e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true; btn.innerText = "儲存中...";
+
             const r = {
-                id: Date.now(),
+                id: "ID" + Date.now(),
                 factory: document.getElementById('f_factory').value.trim(),
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
                 model: document.getElementById('f_model').value.trim(),
@@ -215,12 +189,29 @@
                 content: document.getElementById('f_content').value.trim(),
                 image: currentImageData
             };
-            records.unshift(r);
-            localStorage.setItem('fixlog_apple_data', JSON.stringify(records));
-            e.target.reset(); currentImageData = null;
-            document.getElementById('imgPreviewContainer').classList.add('hidden');
-            document.getElementById('uploadPrompt').classList.remove('hidden');
-            toggleForm(); renderRecords();
+
+            try {
+                records.unshift(r);
+                localStorage.setItem('fixlog_v12_stable', JSON.stringify(records));
+                e.target.reset(); currentImageData = null;
+                document.getElementById('imgPreviewContainer').classList.add('hidden');
+                document.getElementById('uploadPrompt').classList.remove('hidden');
+                toggleForm(); renderRecords();
+            } catch (err) {
+                alert("儲存空間不足，請刪除舊資料或減少照片數量！");
+                records.shift();
+            } finally {
+                btn.disabled = false; btn.innerText = "儲存紀錄";
+            }
+        }
+
+        function deleteRecord(id, event) {
+            event.stopPropagation();
+            if(confirm('確定刪除此紀錄？')) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem('fixlog_v12_stable', JSON.stringify(records));
+                renderRecords();
+            }
         }
 
         function shareRecord(id, event) {
@@ -229,18 +220,8 @@
             const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備機型：${r.model}\n機台編號：${r.sn}\n維修項目：${r.item}\n處理內容：${r.content}`;
             navigator.clipboard.writeText(text).then(() => {
                 const t = document.getElementById('toast');
-                t.style.opacity = '1'; t.style.top = '60px';
-                setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2000);
+                t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000);
             });
-        }
-
-        function deleteRecord(id, event) {
-            event.stopPropagation();
-            if(confirm('確定刪除此紀錄？')) {
-                records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_apple_data', JSON.stringify(records));
-                renderRecords();
-            }
         }
 
         function renderRecords() {
@@ -250,7 +231,7 @@
             
             const factories = ['全部', ...new Set(records.map(r => r.factory))];
             filterRow.innerHTML = factories.map(f => `
-                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'accent-bg text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}">
+                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}">
                     ${f}
                 </button>
             `).join('');
@@ -261,14 +242,12 @@
             });
 
             list.innerHTML = filtered.map(r => `
-                <div class="ios-card overflow-hidden group mb-3" onclick="this.classList.toggle('is-open')">
+                <div class="ios-card overflow-hidden mb-3" onclick="this.classList.toggle('is-open')">
                     <div class="p-5">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[11px] font-bold text-stone-400 tracking-wide">${r.factory} · ${r.datetime}</span>
                             <div class="flex gap-4">
-                                <button onclick="shareRecord(${r.id}, event)" class="p-1 active:opacity-30 transition-opacity">
-                                    <i data-lucide="square-arrow-up" class="w-5 h-5 text-blue-500"></i>
-                                </button>
+                                <button onclick="shareRecord('${r.id}', event)" class="p-1"><i data-lucide="square-arrow-up" class="w-5 h-5 text-blue-500"></i></button>
                                 <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300 transition-transform"></i>
                             </div>
                         </div>
@@ -276,22 +255,12 @@
                             <h3 class="text-lg font-bold tracking-tight text-stone-900">${r.model}</h3>
                             <span class="text-sm font-medium text-stone-400">#${r.sn}</span>
                         </div>
-                        <div class="mt-1 flex items-center gap-1.5">
-                            <div class="w-1.5 h-1.5 rounded-full accent-bg"></div>
-                            <p class="text-sm font-semibold accent-text">${r.item}</p>
-                        </div>
-                        
-                        <div class="collapse-content">
-                            <div class="inner-content">
-                                <div class="bg-stone-50 rounded-2xl p-4 text-[14px] font-medium text-stone-600 leading-relaxed border border-stone-100">
-                                    ${r.content}
-                                </div>
-                                ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-2xl shadow-sm border border-stone-100">` : ''}
-                                <div class="flex justify-end mt-4">
-                                    <button onclick="deleteRecord(${r.id}, event)" class="text-[12px] font-bold text-red-500 px-3 py-1">刪除紀錄</button>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="mt-1 flex items-center gap-1.5"><div class="w-1.5 h-1.5 rounded-full bg-[#435b31]"></div><p class="text-sm font-semibold text-[#435b31]">${r.item}</p></div>
+                        <div class="collapse-content"><div class="inner-content">
+                            <div class="bg-stone-50 rounded-2xl p-4 text-[14px] font-medium text-stone-600 leading-relaxed border border-stone-100">${r.content}</div>
+                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-2xl shadow-sm border border-stone-100">` : ''}
+                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-[12px] font-bold text-red-500 px-3 py-1">刪除紀錄</button></div>
+                        </div></div>
                     </div>
                 </div>
             `).join('');
