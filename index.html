@@ -3,184 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FixLog | 專業查修與月會提醒</title>
+    <title>FixLog | Haute Couture Design</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Noto+Sans+TC:wght@300;500;900&display=swap" rel="stylesheet">
     <style>
-        :root { --m-dark: #3e4d20; --m-deep: #556b2f; --m-prime: #7a944e; --m-soft: #f4f7ed; }
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: var(--m-soft); color: var(--m-dark); }
-        .giant-text { font-size: 1.85rem; line-height: 1.1; font-weight: 900; }
-        .glass-card { background: white; border-radius: 24px; box-shadow: 0 10px 30px -10px rgba(62, 77, 32, 0.08); border: 1px solid rgba(122, 148, 78, 0.12); }
-        .matcha-btn { background: linear-gradient(135deg, #556b2f 0%, #7a944e 100%); }
-        .matcha-light-btn { background: #e1e8d5; color: var(--m-deep); }
-        .collapse-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1); opacity: 0; }
-        .is-open .collapse-content { max-height: 2000px; opacity: 1; padding-top: 1.25rem; }
-        .is-open .arrow-icon { transform: rotate(180deg); color: var(--m-prime); }
-        input, textarea { background: #fafbf8 !important; border: 1.5px solid #e1e8d5 !important; border-radius: 14px !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        :root {
+            --m-dark: #2d361c;
+            --m-prime: #7a944e;
+            --m-light: #fdfefb;
+        }
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background: var(--m-light);
+            color: var(--m-dark);
+            overflow-x: hidden;
+        }
+        /* 浮誇流體背景 */
+        .bg-gradient-fluid {
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, #e1e8d5 0%, #fdfefb 40%);
+            z-index: -1;
+            animation: rotateFluid 20s linear infinite;
+        }
+        @keyframes rotateFluid { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* 設計師質感卡片 */
+        .designer-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 40px;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+        }
+        .designer-card:hover {
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: 0 40px 80px rgba(122, 148, 78, 0.12);
+        }
+
+        /* 巨型字體標題 */
+        .mega-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 5rem;
+            line-height: 0.8;
+            letter-spacing: -4px;
+            opacity: 0.05;
+            position: absolute;
+            top: 20px; right: -20px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* 抹茶漸層按鈕 */
+        .btn-premium {
+            background: linear-gradient(135deg, #3e4d20 0%, #7a944e 100%);
+            box-shadow: 0 15px 30px rgba(62, 77, 32, 0.25);
+            border-radius: 20px;
+            transition: all 0.4s;
+        }
+        .btn-premium:active { transform: scale(0.9); }
+
+        .is-open .collapse-content { max-height: 2000px; opacity: 1; margin-top: 2rem; }
+        .collapse-content { max-height: 0; overflow: hidden; transition: all 0.8s ease; opacity: 0; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
-<body class="pb-24">
+<body class="custom-scrollbar">
 
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200/50 px-6 h-18 flex justify-between items-center shadow-sm">
-        <h1 class="text-2xl font-black italic tracking-tighter text-stone-800">FIX<span class="text-[#7a944e]">LOG</span></h1>
-        <div class="flex gap-3">
-            <button onclick="toggleMemo()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-stone-100 text-stone-500 active:scale-90 transition-all">
-                <i data-lucide="list-checks"></i>
-            </button>
-            <button onclick="toggleForm()" class="matcha-btn text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                <i data-lucide="plus" id="plusIcon"></i>
-            </button>
+    <div class="bg-gradient-fluid"></div>
+
+    <!-- Header -->
+    <header class="px-8 pt-12 pb-6 flex justify-between items-end sticky top-0 z-40 bg-white/30 backdrop-blur-md">
+        <div>
+            <p class="text-xs font-black tracking-[0.3em] text-[#7a944e] mb-1">ENGINEERING LOGBOOK</p>
+            <h1 class="text-4xl font-black tracking-tighter">FIX<span class="text-stone-300">.</span>CORE</h1>
         </div>
-    </nav>
+        <button onclick="toggleForm()" class="btn-premium text-white w-14 h-14 flex items-center justify-center">
+            <i data-lucide="plus" id="plusIcon" class="w-8 h-8"></i>
+        </button>
+    </header>
 
-    <main class="max-w-2xl mx-auto p-4">
-        
-        <div id="meetingAlert" class="mb-6 p-6 matcha-btn text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+    <main class="max-w-3xl mx-auto p-6 relative">
+        <div class="mega-title">FIXLOG</div>
+
+        <!-- 月會浮誇橫幅 -->
+        <div id="meetingAlert" class="designer-card p-10 mb-12 border-l-[12px] border-[#7a944e] relative overflow-hidden group">
             <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-white/20 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">Monthly Meeting</span>
-                    <span id="daysCount" class="text-[10px] font-black bg-orange-400 px-2 py-1 rounded-full">倒數中</span>
+                <div class="flex items-center gap-3 mb-6">
+                    <div id="daysCount" class="bg-[#2d361c] text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase">倒數中</div>
+                    <div class="w-12 h-[1px] bg-stone-200"></div>
                 </div>
-                <h2 class="text-2xl font-black mb-1">下次月會：<span id="meetingDateText">---</span></h2>
-                <p id="meetingStatus" class="text-xs opacity-90 font-bold italic">這星期五開會，請提前準備摘要</p>
+                <h2 class="text-5xl font-black tracking-tighter mb-4 text-stone-800">
+                    <span id="meetingDateText">--/--</span>
+                </h2>
+                <p id="meetingStatus" class="text-sm font-medium text-stone-400 max-w-[200px] leading-relaxed">
+                    本週五開會。記得準備本月的查修亮點報告。
+                </p>
             </div>
-            <i data-lucide="calendar" class="w-20 h-20 absolute -right-4 -bottom-4 opacity-10 rotate-12"></i>
-        </div>
-
-        <div id="memoSection" class="hidden glass-card p-6 mb-8 border-2 border-[#7a944e]/20">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="font-black text-lg text-stone-700">會議備忘清單</h3>
-                <button onclick="clearCompletedTodos()" class="text-[10px] font-black text-stone-400 border border-stone-200 px-2 py-1 rounded-lg">清空已完成</button>
-            </div>
-            <div id="todoList" class="space-y-3">
-                <label class="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl cursor-pointer hover:bg-stone-100 transition-colors">
-                    <input type="checkbox" class="w-5 h-5 accent-[#7a944e] rounded-lg">
-                    <span class="text-sm font-bold text-stone-600">本月查修紀錄總彙整</span>
-                </label>
-                <label class="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl cursor-pointer hover:bg-stone-100 transition-colors">
-                    <input type="checkbox" class="w-5 h-5 accent-[#7a944e] rounded-lg">
-                    <span class="text-sm font-bold text-stone-600">重大故障案例分享 (備份圖片)</span>
-                </label>
+            <div class="absolute right-[-20px] bottom-[-20px] opacity-[0.03] group-hover:opacity-10 transition-opacity duration-1000">
+                <i data-lucide="calendar" class="w-64 h-64"></i>
             </div>
         </div>
 
-        <div class="mb-8 space-y-4">
-            <div class="relative">
-                <i data-lucide="search" class="absolute left-5 top-5 w-5 h-5 text-stone-300"></i>
-                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋設備、機號、內容..." class="w-full pl-14 pr-6 py-5 border-none shadow-sm rounded-[1.5rem] bg-white font-bold text-stone-700">
-            </div>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar" id="factoryFilterRow"></div>
+        <!-- 搜尋列 -->
+        <div class="mb-12 relative group">
+            <input type="text" id="searchInput" oninput="renderRecords()" placeholder="SEARCH LOGS..." 
+                class="w-full bg-white/50 border-none px-10 py-8 rounded-[30px] text-xl font-bold placeholder:text-stone-300 focus:ring-4 focus:ring-[#7a944e]/10 transition-all shadow-inner">
+            <i data-lucide="search" class="absolute right-8 top-8 text-stone-300"></i>
         </div>
 
-        <div id="recordList" class="space-y-4"></div>
+        <div id="factoryFilterRow" class="flex gap-4 mb-12 overflow-x-auto no-scrollbar py-2"></div>
+
+        <!-- 列表區 -->
+        <div id="recordList" class="space-y-10"></div>
     </main>
 
-    <div id="repairForm" class="hidden fixed inset-0 z-[60] bg-white p-8 overflow-y-auto animate-in slide-in-from-bottom duration-500">
-        <div class="max-w-2xl mx-auto">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-black">建立紀錄</h2>
-                <button onclick="toggleForm()" class="p-2 bg-stone-100 rounded-full"><i data-lucide="x"></i></button>
+    <!-- 全螢幕浮誇表單 -->
+    <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-white/95 backdrop-blur-3xl p-10 overflow-y-auto">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-start mb-20">
+                <div>
+                    <h2 class="text-6xl font-black tracking-tighter">NEW<br>ENTRY</h2>
+                    <div class="h-2 w-20 bg-[#7a944e] mt-4"></div>
+                </div>
+                <button onclick="toggleForm()" class="p-6 bg-stone-100 rounded-full hover:rotate-90 transition-transform duration-500">
+                    <i data-lucide="x" class="w-10 h-10"></i>
+                </button>
             </div>
-            <form onsubmit="saveRecord(event)" class="space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">廠別</label>
-                        <input type="text" id="f_factory" placeholder="分廠" class="p-5 text-lg font-bold" required>
+            
+            <form onsubmit="saveRecord(event)" class="space-y-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="border-b-2 border-stone-100 pb-4 focus-within:border-[#7a944e] transition-colors">
+                        <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Factory</label>
+                        <input type="text" id="f_factory" placeholder="廠別" class="w-full text-3xl font-bold bg-transparent outline-none mt-2" required>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">時間</label>
-                        <input type="datetime-local" id="f_datetime" class="p-5 text-lg font-bold">
-                    </div>
-                </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2 flex flex-col gap-2">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">機型</label>
-                        <input type="text" id="f_model" placeholder="機台型號" class="p-5 text-lg font-bold" required>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black uppercase text-stone-400 ml-1">機號</label>
-                        <input type="text" id="f_sn" placeholder="ID#" class="p-5 text-lg font-bold">
+                    <div class="border-b-2 border-stone-100 pb-4 focus-within:border-[#7a944e] transition-colors">
+                        <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Timestamp</label>
+                        <input type="datetime-local" id="f_datetime" class="w-full text-2xl font-bold bg-transparent outline-none mt-2">
                     </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">維修項目</label>
-                    <input type="text" id="f_item" placeholder="故障主旨" class="p-5 text-lg font-bold">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div class="md:col-span-2 border-b-2 border-stone-100 pb-4 focus-within:border-[#7a944e] transition-colors">
+                        <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Machine Model</label>
+                        <input type="text" id="f_model" placeholder="機型" class="w-full text-3xl font-bold bg-transparent outline-none mt-2" required>
+                    </div>
+                    <div class="border-b-2 border-stone-100 pb-4 focus-within:border-[#7a944e] transition-colors">
+                        <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Serial Number</label>
+                        <input type="text" id="f_sn" placeholder="#ID" class="w-full text-3xl font-bold bg-transparent outline-none mt-2">
+                    </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">維修詳情</label>
-                    <textarea id="f_content" rows="6" placeholder="輸入處理過程..." class="p-5 text-lg font-bold" required></textarea>
+
+                <div class="border-b-2 border-stone-100 pb-4 focus-within:border-[#7a944e] transition-colors">
+                    <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Maintenance Subject</label>
+                    <input type="text" id="f_item" placeholder="維修項目" class="w-full text-3xl font-bold bg-transparent outline-none mt-2">
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-black uppercase text-stone-400 ml-1">照片附件</label>
-                    <div class="relative bg-stone-50 border-2 border-dashed border-stone-200 rounded-3xl p-10 text-center hover:bg-stone-100 transition cursor-pointer">
+
+                <div class="border-b-2 border-stone-100 pb-4 focus-within:border-[#7a944e] transition-colors">
+                    <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Detailed Report</label>
+                    <textarea id="f_content" rows="4" placeholder="在此輸入技術細節..." class="w-full text-2xl font-medium bg-transparent outline-none mt-4" required></textarea>
+                </div>
+
+                <div class="pt-8">
+                    <div class="relative group cursor-pointer border-4 border-dashed border-stone-100 rounded-[40px] p-20 text-center hover:bg-[#7a944e]/5 transition-all">
                         <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
-                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-64 mx-auto rounded-2xl shadow-md"></div>
-                        <div id="uploadPrompt" class="text-stone-400 font-bold"><i data-lucide="camera" class="w-10 h-10 mx-auto mb-2 opacity-50"></i><span>點擊或拍照</span></div>
+                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-80 mx-auto rounded-2xl shadow-2xl"></div>
+                        <div id="uploadPrompt">
+                            <i data-lucide="camera" class="w-16 h-16 mx-auto mb-6 text-stone-200 group-hover:text-[#7a944e] transition-colors"></i>
+                            <p class="text-stone-300 font-black">點擊以附加影像證明</p>
+                        </div>
                     </div>
                 </div>
-                <button type="submit" class="w-full matcha-btn text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95 transition-all mb-10">儲存日誌</button>
+
+                <button type="submit" class="w-full btn-premium text-white py-10 rounded-[30px] text-3xl font-black shadow-2xl mb-20">
+                    COMPLETE ENTRY
+                </button>
             </form>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100]">已複製到剪貼簿 ✨</div>
+    <!-- 吐司通知 -->
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-black text-white px-10 py-5 rounded-full text-xs font-black tracking-[0.2em] shadow-2xl opacity-0 transition-all z-[200]">COPIED TO CLIPBOARD</div>
 
     <script>
-        // --- 月會日期推算邏輯 (這星期五，過後改為每月一次) ---
+        // 日期推算邏輯
         function updateMeetingDisplay() {
             const now = new Date();
             let targetDate;
-            
-            // 1. 尋找本週五 (本週日是0, 週五是5)
             const currentDay = now.getDay();
             const daysToFriday = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
             const thisFriday = new Date(now.getTime() + daysToFriday * 24 * 60 * 60 * 1000);
             thisFriday.setHours(0,0,0,0);
-
             const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
             if (todayZero <= thisFriday) {
-                // 如果還沒過這週五
                 targetDate = thisFriday;
-                document.getElementById('meetingStatus').innerText = "本週五即將開會，請準備摘要";
+                document.getElementById('meetingStatus').innerText = "本週五即將開會。請提前準備本週查修重點報告。";
             } else {
-                // 如果這週五已經過了，計算下個月的第二個星期五
                 let nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
                 let firstDay = nextMonth.getDay();
-                // 找第一個週五
                 let firstFriday = (firstDay <= 5) ? (5 - firstDay) : (12 - firstDay);
-                // 第二個週五 = 第一個週五 + 7天
                 targetDate = new Date(nextMonth.getTime() + (firstFriday + 7) * 24 * 60 * 60 * 1000);
-                document.getElementById('meetingStatus').innerText = "本月會議已結束，下次為下月第二週五";
+                document.getElementById('meetingStatus').innerText = "本月會議已圓滿結束。下次會議預計於下月第二週五。";
             }
-
-            const dateStr = `${targetDate.getFullYear()}/${targetDate.getMonth()+1}/${targetDate.getDate()} (五)`;
-            document.getElementById('meetingDateText').innerText = dateStr;
-
-            // 倒數天數
-            const diffTime = targetDate - todayZero;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            document.getElementById('daysCount').innerText = diffDays === 0 ? "今天開會" : `倒數 ${diffDays} 天`;
+            document.getElementById('meetingDateText').innerText = `${targetDate.getMonth()+1}/${targetDate.getDate()}`;
+            const diffDays = Math.ceil((targetDate - todayZero) / (1000 * 60 * 60 * 24));
+            document.getElementById('daysCount').innerText = diffDays === 0 ? "TODAY" : `IN ${diffDays} DAYS`;
         }
 
-        // --- 其餘功能邏輯 ---
-        function toggleMemo() { document.getElementById('memoSection').classList.toggle('hidden'); }
-        function toggleForm() { 
-            const form = document.getElementById('repairForm');
-            form.classList.toggle('hidden');
-            if(!form.classList.contains('hidden')) { setCurrentTime(); }
-        }
-        function setCurrentTime() {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
-        }
-
-        let records = JSON.parse(localStorage.getItem('fixlog_v9_data')) || [];
+        let records = JSON.parse(localStorage.getItem('fixlog_v10_data')) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
+
+        function toggleForm() {
+            const form = document.getElementById('repairForm');
+            form.classList.toggle('hidden');
+            if(!form.classList.contains('hidden')) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
+            }
+        }
 
         function previewImage(input) {
             const file = input.files[0];
@@ -196,31 +242,20 @@
             }
         }
 
-        function shareRecord(id, event) {
-            event.stopPropagation();
-            const r = records.find(x => x.id === id);
-            const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n機型：${r.model}\n機號：${r.sn}\n項目：${r.item}\n內容：${r.content}`;
-            navigator.clipboard.writeText(text).then(() => {
-                const toast = document.getElementById('toast');
-                toast.classList.replace('opacity-0', 'opacity-100');
-                setTimeout(() => toast.classList.replace('opacity-100', 'opacity-0'), 1500);
-            });
-        }
-
         function saveRecord(e) {
             e.preventDefault();
-            const newRecord = {
+            const r = {
                 id: Date.now(),
                 factory: document.getElementById('f_factory').value.trim(),
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
                 model: document.getElementById('f_model').value.trim(),
                 sn: document.getElementById('f_sn').value.trim() || '-',
-                item: document.getElementById('f_item').value.trim() || '一般查修',
+                item: document.getElementById('f_item').value.trim() || 'General Maintenance',
                 content: document.getElementById('f_content').value.trim(),
                 image: currentImageData
             };
-            records.unshift(newRecord);
-            localStorage.setItem('fixlog_v9_data', JSON.stringify(records));
+            records.unshift(r);
+            localStorage.setItem('fixlog_v10_data', JSON.stringify(records));
             e.target.reset();
             currentImageData = null;
             document.getElementById('imgPreviewContainer').classList.add('hidden');
@@ -229,11 +264,22 @@
             renderRecords();
         }
 
+        function shareRecord(id, event) {
+            event.stopPropagation();
+            const r = records.find(x => x.id === id);
+            const text = `【FIX.CORE REPORT】\nFactory: ${r.factory}\nTime: ${r.datetime}\nMachine: ${r.model} (${r.sn})\nItem: ${r.item}\nNote: ${r.content}`;
+            navigator.clipboard.writeText(text).then(() => {
+                const t = document.getElementById('toast');
+                t.style.opacity = '1';
+                setTimeout(() => t.style.opacity = '0', 2000);
+            });
+        }
+
         function deleteRecord(id, event) {
             event.stopPropagation();
-            if(confirm('確定刪除？')) {
+            if(confirm('REMOVE THIS RECORD?')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_v9_data', JSON.stringify(records));
+                localStorage.setItem('fixlog_v10_data', JSON.stringify(records));
                 renderRecords();
             }
         }
@@ -242,43 +288,50 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const list = document.getElementById('recordList');
             const filterRow = document.getElementById('factoryFilterRow');
+            
             const factories = ['全部', ...new Set(records.map(r => r.factory))];
             filterRow.innerHTML = factories.map(f => `
-                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-6 py-2.5 rounded-2xl font-black text-xs tracking-widest transition-all ${selectedFactory === f ? 'matcha-btn text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}">
+                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest transition-all ${selectedFactory === f ? 'bg-[#2d361c] text-white' : 'bg-white text-stone-400 hover:bg-stone-50'} shadow-sm">
                     ${f.toUpperCase()}
                 </button>
             `).join('');
+
             const filtered = records.filter(r => {
-                const matchSearch = r.model.toLowerCase().includes(searchTerm) || r.content.toLowerCase().includes(searchTerm) || r.sn.toLowerCase().includes(searchTerm);
-                const matchFactory = selectedFactory === '全部' || r.factory === selectedFactory;
-                return matchSearch && matchFactory;
+                const match = r.model.toLowerCase().includes(searchTerm) || r.content.toLowerCase().includes(searchTerm) || r.sn.toLowerCase().includes(searchTerm);
+                return match && (selectedFactory === '全部' || r.factory === selectedFactory);
             });
+
             list.innerHTML = filtered.map(r => `
-                <div class="glass-card overflow-hidden cursor-pointer" onclick="this.classList.toggle('is-open')">
-                    <div class="p-5">
-                        <div class="flex justify-between items-center mb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[11px] font-black bg-[#556b2f] text-white px-3 py-1 rounded-full tracking-tighter shadow-sm">${r.factory}</span>
-                                <span class="text-[10px] font-bold text-stone-300">${r.datetime}</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <button type="button" onclick="shareRecord(${r.id}, event)" class="p-2 hover:bg-stone-100 rounded-full text-[#7a944e] active:scale-90"><i data-lucide="share-2" class="w-5 h-5"></i></button>
-                                <i data-lucide="chevron-down" class="arrow-icon w-5 h-5 text-stone-300 transition-transform"></i>
-                            </div>
+                <div class="designer-card overflow-hidden cursor-pointer p-8 group" onclick="this.classList.toggle('is-open')">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-center gap-4">
+                            <span class="bg-[#7a944e] text-white px-4 py-1 rounded-full text-[10px] font-black tracking-widest">${r.factory}</span>
+                            <span class="text-[10px] font-black text-stone-300">${r.datetime}</span>
                         </div>
-                        <div class="giant-text text-stone-800 mb-2 flex items-baseline flex-wrap">
-                            <span>${r.model}</span>
-                            <span class="text-[#556b2f] text-2xl font-bold ml-2 opacity-80 italic">#${r.sn}</span>
-                        </div>
-                        <div class="text-[15px] font-black text-[#7a944e] flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#7a944e]"></span> ${r.item}
-                        </div>
+                        <button onclick="shareRecord(${r.id}, event)" class="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-stone-50 rounded-full">
+                            <i data-lucide="external-link" class="w-5 h-5 text-stone-400"></i>
+                        </button>
                     </div>
-                    <div class="collapse-content px-5 pb-6">
-                        <div class="bg-stone-50 rounded-2xl p-5 text-[15px] text-stone-600 leading-relaxed border border-stone-100 font-medium">${r.content}</div>
-                        ${r.image ? `<img src="${r.image}" class="w-full mt-4 rounded-3xl border-4 border-white shadow-xl">` : ''}
-                        <div class="flex justify-end mt-4">
-                            <button onclick="deleteRecord(${r.id}, event)" class="p-3 text-stone-200 hover:text-red-400 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                    
+                    <div class="mb-4">
+                        <h3 class="text-4xl font-black tracking-tighter text-stone-800">${r.model}</h3>
+                        <p class="text-2xl font-black text-[#7a944e] mt-1 opacity-80"># ${r.sn}</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="w-1 h-6 bg-stone-100"></div>
+                        <p class="text-lg font-bold text-stone-500">${r.item}</p>
+                    </div>
+
+                    <div class="collapse-content">
+                        <div class="bg-stone-50 rounded-[30px] p-8 text-xl font-medium text-stone-600 leading-relaxed italic">
+                            "${r.content}"
+                        </div>
+                        ${r.image ? `<img src="${r.image}" class="w-full mt-8 rounded-[40px] shadow-2xl shadow-[#7a944e]/20">` : ''}
+                        <div class="flex justify-end mt-8">
+                            <button onclick="deleteRecord(${r.id}, event)" class="p-4 text-stone-200 hover:text-red-400 transition-colors">
+                                <i data-lucide="trash-2" class="w-6 h-6"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -287,7 +340,6 @@
         }
 
         function setFilter(f) { selectedFactory = f; renderRecords(); }
-        
         updateMeetingDisplay();
         renderRecords();
         lucide.createIcons();
