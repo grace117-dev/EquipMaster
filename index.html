@@ -13,7 +13,6 @@
         .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.02); transition: all 0.2s ease; }
         .ios-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
         
-        /* 展開動畫 */
         .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
         .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
         .is-open .arrow-icon { transform: rotate(90deg); }
@@ -21,9 +20,12 @@
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .btn-active:active { transform: scale(0.95); opacity: 0.7; }
+        
+        /* 注意事項樣式 */
+        .notice-box { border-radius: 16px; background: rgba(0,0,0,0.03); padding: 16px; margin-top: 40px; margin-bottom: 20px; }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-10">
 
     <!-- 導覽列 -->
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
@@ -60,15 +62,29 @@
         </div>
 
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
+        
         <div id="recordList" class="space-y-3"></div>
+
+        <!-- 1. 增加注意事項欄位 (Apple 腳註風格) -->
+        <section class="notice-box">
+            <div class="flex items-start gap-3">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-stone-400 mt-0.5"></i>
+                <div class="flex-1">
+                    <h4 class="text-xs font-bold text-stone-500 mb-1">隱私與數據說明</h4>
+                    <p class="text-[11px] leading-relaxed text-stone-400">
+                        本系統為隱私優先設計。所有維修紀錄與照片均直接儲存在您的<span class="text-stone-600 font-semibold underline decoration-stone-300">手機本端瀏覽器</span>中，並未上傳至伺服器。請注意：若您<span class="text-red-400 font-semibold">清除瀏覽器快取 (Cookies) 或更換設備</span>，所有紀錄將會永久遗失，建議定期將重要紀錄複製備份。
+                    </p>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- 抽屜式表單 (新增/修改通用) -->
+    <!-- 抽屜式表單 -->
     <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
-        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto">
+        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto shadow-2xl">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
             <div class="flex justify-between items-center mb-6 px-2">
-                <h2 id="formTitle" class="text-2xl font-bold">新紀錄</h2>
+                <h2 id="formTitle" class="text-2xl font-bold tracking-tight">新紀錄</h2>
                 <button onclick="closeForm()" class="text-blue-600 font-semibold text-lg">取消</button>
             </div>
             
@@ -76,7 +92,7 @@
                 <div class="ios-card p-1">
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">廠別</span>
-                        <input type="text" id="f_factory" placeholder="例如：一廠" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
+                        <input type="text" id="f_factory" placeholder="分廠名稱" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
                     </div>
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">時間</span>
@@ -88,7 +104,7 @@
                     </div>
                     <div class="flex p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">機號</span>
-                        <input type="text" id="f_sn" placeholder="ID" class="flex-1 outline-none font-medium text-sm bg-transparent">
+                        <input type="text" id="f_sn" placeholder="編號/ID" class="flex-1 outline-none font-medium text-sm bg-transparent">
                     </div>
                 </div>
 
@@ -118,9 +134,9 @@
         let records = JSON.parse(localStorage.getItem('fixlog_v13_stable')) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
-        let editModeId = null; // 追蹤是否正在編輯
+        let editModeId = null;
 
-        // --- 表單控制 ---
+        // --- 表單邏輯 ---
         function openFormForAdd() {
             editModeId = null;
             document.querySelector('form').reset();
@@ -129,11 +145,9 @@
             currentImageData = null;
             document.getElementById('imgPreviewContainer').classList.add('hidden');
             document.getElementById('uploadPrompt').classList.remove('hidden');
-            
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
-            
             document.getElementById('repairForm').classList.remove('hidden');
         }
 
@@ -141,7 +155,6 @@
             const r = records.find(x => x.id === id);
             if (!r) return;
             editModeId = id;
-            
             document.getElementById('formTitle').innerText = "編輯紀錄";
             document.getElementById('saveBtn').innerText = "更新紀錄";
             document.getElementById('f_factory').value = r.factory;
@@ -150,7 +163,6 @@
             document.getElementById('f_sn').value = r.sn;
             document.getElementById('f_item').value = r.item;
             document.getElementById('f_content').value = r.content;
-            
             if (r.image) {
                 currentImageData = r.image;
                 document.getElementById('imgPreview').src = r.image;
@@ -164,11 +176,9 @@
             document.getElementById('repairForm').classList.remove('hidden');
         }
 
-        function closeForm() {
-            document.getElementById('repairForm').classList.add('hidden');
-        }
+        function closeForm() { document.getElementById('repairForm').classList.add('hidden'); }
 
-        // --- 核心邏輯：圖片壓縮 ---
+        // --- 核心邏輯：圖片壓縮與防爆 ---
         function processImage(input) {
             const file = input.files[0];
             if (!file) return;
@@ -199,7 +209,6 @@
             e.preventDefault();
             const btn = document.getElementById('saveBtn');
             btn.disabled = true;
-
             const rData = {
                 factory: document.getElementById('f_factory').value.trim(),
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
@@ -209,7 +218,6 @@
                 content: document.getElementById('f_content').value.trim(),
                 image: currentImageData
             };
-
             try {
                 if (editModeId) {
                     const index = records.findIndex(x => x.id === editModeId);
@@ -223,20 +231,16 @@
                 localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
                 closeForm(); renderRecords();
             } catch (err) {
-                alert("儲存空間不足，請刪除部分含照片的舊紀錄！");
-            } finally {
-                btn.disabled = false;
-            }
+                alert("手機空間不足，請刪除部分舊紀錄！");
+            } finally { btn.disabled = false; }
         }
 
-        // --- 刪除與複製 ---
         function deleteRecord(id, event) {
             event.stopPropagation();
             if(confirm('確定要永久刪除此紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
                 localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
-                renderRecords();
-                showToast("🗑 紀錄已刪除");
+                renderRecords(); showToast("🗑 紀錄已刪除");
             }
         }
 
@@ -244,9 +248,7 @@
             event.stopPropagation();
             const r = records.find(x => x.id === id);
             const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備機型：${r.model}\n機台編號：${r.sn}\n維修項目：${r.item}\n處理內容：${r.content}`;
-            navigator.clipboard.writeText(text).then(() => {
-                showToast("📋 內容已複製到剪貼簿");
-            });
+            navigator.clipboard.writeText(text).then(() => showToast("📋 內容已複製到剪貼簿"));
         }
 
         function showToast(msg) {
@@ -255,24 +257,20 @@
             setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2000);
         }
 
-        // --- 畫面渲染 ---
         function renderRecords() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const list = document.getElementById('recordList');
             const filterRow = document.getElementById('factoryFilterRow');
-            
             const factories = ['全部', ...new Set(records.map(r => r.factory))];
             filterRow.innerHTML = factories.map(f => `
                 <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}">
                     ${f}
                 </button>
             `).join('');
-
             const filtered = records.filter(r => {
                 const match = r.model.toLowerCase().includes(search) || r.content.toLowerCase().includes(search) || r.sn.toLowerCase().includes(search) || r.factory.toLowerCase().includes(search);
                 return match && (selectedFactory === '全部' || r.factory === selectedFactory);
             });
-
             list.innerHTML = filtered.map(r => `
                 <div class="ios-card overflow-hidden mb-3" onclick="this.classList.toggle('is-open')">
                     <div class="p-5">
@@ -300,7 +298,6 @@
             lucide.createIcons();
         }
 
-        // --- 其他工具 ---
         function setFilter(f) { selectedFactory = f; renderRecords(); }
         
         function updateMeeting() {
