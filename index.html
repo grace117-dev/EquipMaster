@@ -10,28 +10,34 @@
     <style>
         :root { --ios-bg: #f2f2f7; --ios-card: #ffffff; --apple-green: #435b31; }
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", sans-serif; background-color: var(--ios-bg); color: #000; -webkit-font-smoothing: antialiased; }
-        .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.05); }
+        .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.02); transition: all 0.2s ease; }
         .ios-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+        
+        /* 展開動畫 */
         .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
         .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
+        .is-open .arrow-icon { transform: rotate(90deg); }
         .inner-content { overflow: hidden; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .btn-active:active { transform: scale(0.95); opacity: 0.7; }
     </style>
 </head>
 <body class="pb-20">
 
+    <!-- 導覽列 -->
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
         <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系统</span>
+            <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統</span>
             <h1 class="text-xl font-bold tracking-tight">查修日誌</h1>
         </div>
-        <button onclick="toggleForm()" class="bg-[#435b31] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm active:opacity-70 transition-opacity">
+        <button onclick="openFormForAdd()" class="bg-[#435b31] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm btn-active">
             <i data-lucide="plus" class="w-6 h-6"></i>
         </button>
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        <!-- 月會提示 -->
+        <!-- 月會提醒 -->
         <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
@@ -57,20 +63,20 @@
         <div id="recordList" class="space-y-3"></div>
     </main>
 
-    <!-- 表單 -->
+    <!-- 抽屜式表單 (新增/修改通用) -->
     <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
-        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[90vh] overflow-y-auto">
+        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">新紀錄</h2>
-                <button onclick="toggleForm()" class="text-blue-600 font-semibold">取消</button>
+            <div class="flex justify-between items-center mb-6 px-2">
+                <h2 id="formTitle" class="text-2xl font-bold">新紀錄</h2>
+                <button onclick="closeForm()" class="text-blue-600 font-semibold text-lg">取消</button>
             </div>
             
             <form onsubmit="saveRecord(event)" class="space-y-4">
                 <div class="ios-card p-1">
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">廠別</span>
-                        <input type="text" id="f_factory" placeholder="分廠名稱" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
+                        <input type="text" id="f_factory" placeholder="例如：一廠" class="flex-1 outline-none font-medium text-sm bg-transparent" required>
                     </div>
                     <div class="flex border-b border-stone-100 p-4">
                         <span class="w-20 text-stone-400 font-medium text-sm">時間</span>
@@ -94,77 +100,91 @@
                 <div class="flex gap-3">
                     <div class="flex-1 relative ios-card p-4 text-center cursor-pointer hover:bg-stone-50 overflow-hidden">
                         <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processImage(this)">
-                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded"></div>
+                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded shadow-sm"></div>
                         <div id="uploadPrompt" class="text-stone-400 text-xs font-bold flex flex-col items-center gap-1">
                             <i data-lucide="camera" class="w-5 h-5"></i><span>加入照片</span>
                         </div>
                     </div>
-                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl text-lg font-bold shadow-lg active:opacity-80">儲存紀錄</button>
+                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl text-lg font-bold shadow-lg btn-active">儲存紀錄</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white shadow-xl border border-stone-100 px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 opacity-0 transition-all z-[200]">已複製到剪貼簿</div>
+    <!-- Toast 提示列 -->
+    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white shadow-2xl border border-stone-100 px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 opacity-0 transition-all z-[200]">提示文字</div>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('fixlog_v12_stable')) || [];
+        let records = JSON.parse(localStorage.getItem('fixlog_v13_stable')) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
+        let editModeId = null; // 追蹤是否正在編輯
 
-        function updateMeeting() {
+        // --- 表單控制 ---
+        function openFormForAdd() {
+            editModeId = null;
+            document.querySelector('form').reset();
+            document.getElementById('formTitle').innerText = "新紀錄";
+            document.getElementById('saveBtn').innerText = "儲存紀錄";
+            currentImageData = null;
+            document.getElementById('imgPreviewContainer').classList.add('hidden');
+            document.getElementById('uploadPrompt').classList.remove('hidden');
+            
             const now = new Date();
-            let target;
-            const currentDay = now.getDay();
-            const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
-            const thisFri = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
-            thisFri.setHours(0,0,0,0);
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
+            
+            document.getElementById('repairForm').classList.remove('hidden');
+        }
 
-            if (today <= thisFri) {
-                target = thisFri;
-                document.getElementById('meetingStatus').innerText = "本週五即將開會。";
+        function openFormForEdit(id) {
+            const r = records.find(x => x.id === id);
+            if (!r) return;
+            editModeId = id;
+            
+            document.getElementById('formTitle').innerText = "編輯紀錄";
+            document.getElementById('saveBtn').innerText = "更新紀錄";
+            document.getElementById('f_factory').value = r.factory;
+            document.getElementById('f_datetime').value = r.datetime.replace(' ', 'T');
+            document.getElementById('f_model').value = r.model;
+            document.getElementById('f_sn').value = r.sn;
+            document.getElementById('f_item').value = r.item;
+            document.getElementById('f_content').value = r.content;
+            
+            if (r.image) {
+                currentImageData = r.image;
+                document.getElementById('imgPreview').src = r.image;
+                document.getElementById('imgPreviewContainer').classList.remove('hidden');
+                document.getElementById('uploadPrompt').classList.add('hidden');
             } else {
-                let nextM = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-                let firstDay = nextM.getDay();
-                let firstFri = (firstDay <= 5) ? (5 - firstDay) : (12 - firstDay);
-                target = new Date(nextM.getTime() + (firstFri + 7) * 24 * 60 * 60 * 1000);
-                document.getElementById('meetingStatus').innerText = "下月會議預告。";
+                currentImageData = null;
+                document.getElementById('imgPreviewContainer').classList.add('hidden');
+                document.getElementById('uploadPrompt').classList.remove('hidden');
             }
-            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
-            const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-            document.getElementById('daysCount').innerText = diff === 0 ? "今天" : `剩餘 ${diff} 天`;
+            document.getElementById('repairForm').classList.remove('hidden');
         }
 
-        function toggleForm() {
-            document.getElementById('repairForm').classList.toggle('hidden');
-            if(!document.getElementById('repairForm').classList.contains('hidden')) {
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                document.getElementById('f_datetime').value = now.toISOString().slice(0, 16);
-            }
+        function closeForm() {
+            document.getElementById('repairForm').classList.add('hidden');
         }
 
-        // 核心：壓縮圖片邏輯，防止 LocalStorage 崩潰
+        // --- 核心邏輯：圖片壓縮 ---
         function processImage(input) {
             const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const max = 800; // 最大解析度
+                    let width = img.width; let height = img.height;
+                    const max = 800;
                     if (width > height && width > max) { height *= max / width; width = max; }
                     else if (height > max) { width *= max / height; height = max; }
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    currentImageData = canvas.toDataURL('image/jpeg', 0.6); // 壓縮品質 0.6
+                    currentImageData = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('imgPreview').src = currentImageData;
                     document.getElementById('imgPreviewContainer').classList.remove('hidden');
                     document.getElementById('uploadPrompt').classList.add('hidden');
@@ -174,13 +194,13 @@
             reader.readAsDataURL(file);
         }
 
+        // --- 儲存與修改 ---
         function saveRecord(e) {
             e.preventDefault();
             const btn = document.getElementById('saveBtn');
-            btn.disabled = true; btn.innerText = "儲存中...";
+            btn.disabled = true;
 
-            const r = {
-                id: "ID" + Date.now(),
+            const rData = {
                 factory: document.getElementById('f_factory').value.trim(),
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
                 model: document.getElementById('f_model').value.trim(),
@@ -191,26 +211,32 @@
             };
 
             try {
-                records.unshift(r);
-                localStorage.setItem('fixlog_v12_stable', JSON.stringify(records));
-                e.target.reset(); currentImageData = null;
-                document.getElementById('imgPreviewContainer').classList.add('hidden');
-                document.getElementById('uploadPrompt').classList.remove('hidden');
-                toggleForm(); renderRecords();
+                if (editModeId) {
+                    const index = records.findIndex(x => x.id === editModeId);
+                    records[index] = { ...records[index], ...rData };
+                    showToast("✅ 紀錄已更新");
+                } else {
+                    const newR = { id: "ID" + Date.now(), ...rData };
+                    records.unshift(newR);
+                    showToast("✅ 已儲存新紀錄");
+                }
+                localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
+                closeForm(); renderRecords();
             } catch (err) {
-                alert("儲存空間不足，請刪除舊資料或減少照片數量！");
-                records.shift();
+                alert("儲存空間不足，請刪除部分含照片的舊紀錄！");
             } finally {
-                btn.disabled = false; btn.innerText = "儲存紀錄";
+                btn.disabled = false;
             }
         }
 
+        // --- 刪除與複製 ---
         function deleteRecord(id, event) {
             event.stopPropagation();
-            if(confirm('確定刪除此紀錄？')) {
+            if(confirm('確定要永久刪除此紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_v12_stable', JSON.stringify(records));
+                localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
                 renderRecords();
+                showToast("🗑 紀錄已刪除");
             }
         }
 
@@ -219,11 +245,17 @@
             const r = records.find(x => x.id === id);
             const text = `【維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備機型：${r.model}\n機台編號：${r.sn}\n維修項目：${r.item}\n處理內容：${r.content}`;
             navigator.clipboard.writeText(text).then(() => {
-                const t = document.getElementById('toast');
-                t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000);
+                showToast("📋 內容已複製到剪貼簿");
             });
         }
 
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.opacity = '1'; t.style.top = '60px';
+            setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2000);
+        }
+
+        // --- 畫面渲染 ---
         function renderRecords() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const list = document.getElementById('recordList');
@@ -237,7 +269,7 @@
             `).join('');
 
             const filtered = records.filter(r => {
-                const match = r.model.toLowerCase().includes(search) || r.content.toLowerCase().includes(search) || r.sn.toLowerCase().includes(search);
+                const match = r.model.toLowerCase().includes(search) || r.content.toLowerCase().includes(search) || r.sn.toLowerCase().includes(search) || r.factory.toLowerCase().includes(search);
                 return match && (selectedFactory === '全部' || r.factory === selectedFactory);
             });
 
@@ -247,7 +279,8 @@
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[11px] font-bold text-stone-400 tracking-wide">${r.factory} · ${r.datetime}</span>
                             <div class="flex gap-4">
-                                <button onclick="shareRecord('${r.id}', event)" class="p-1"><i data-lucide="square-arrow-up" class="w-5 h-5 text-blue-500"></i></button>
+                                <button onclick="openFormForEdit('${r.id}')" class="p-1 btn-active"><i data-lucide="pencil" class="w-4 h-4 text-stone-300"></i></button>
+                                <button onclick="shareRecord('${r.id}', event)" class="p-1 btn-active"><i data-lucide="square-arrow-up" class="w-5 h-5 text-blue-500"></i></button>
                                 <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300 transition-transform"></i>
                             </div>
                         </div>
@@ -259,7 +292,7 @@
                         <div class="collapse-content"><div class="inner-content">
                             <div class="bg-stone-50 rounded-2xl p-4 text-[14px] font-medium text-stone-600 leading-relaxed border border-stone-100">${r.content}</div>
                             ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-2xl shadow-sm border border-stone-100">` : ''}
-                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-[12px] font-bold text-red-500 px-3 py-1">刪除紀錄</button></div>
+                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-[12px] font-bold text-red-400 px-3 py-1">刪除此紀錄</button></div>
                         </div></div>
                     </div>
                 </div>
@@ -267,7 +300,20 @@
             lucide.createIcons();
         }
 
+        // --- 其他工具 ---
         function setFilter(f) { selectedFactory = f; renderRecords(); }
+        
+        function updateMeeting() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
+            const target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
+            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
+            const diff = Math.ceil((target.setHours(0,0,0,0) - now.setHours(0,0,0,0)) / 86400000);
+            document.getElementById('daysCount').innerText = diff === 0 ? "今天" : `剩餘 ${diff} 天`;
+            document.getElementById('meetingStatus').innerText = diff === 0 ? "今天開會，請準備資料。" : "本週五預定開會。";
+        }
+
         updateMeeting(); renderRecords(); lucide.createIcons();
     </script>
 </body>
