@@ -20,17 +20,12 @@
         .btn-active:active { transform: scale(0.95); opacity: 0.7; }
         
         /* 隱藏但保持功能的輸入框 */
-        .hidden-input {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            overflow: hidden;
-        }
+        .hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
     </style>
 </head>
 <body class="pb-10">
 
+    <!-- 導覽列 -->
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
         <div class="flex flex-col">
             <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統</span>
@@ -42,20 +37,19 @@
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        <!-- 月會提醒區塊 (重構點擊邏輯) -->
+        
+        <!-- 1. 月會提醒區塊 (已優化手機點擊) -->
         <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
                 <div class="flex gap-2">
-                    <button onclick="resetMeetingDate()" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full z-20">恢復自動</button>
+                    <button onclick="resetMeetingDate(event)" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full z-20">恢復自動</button>
                     <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
                 </div>
             </div>
             
-            <!-- 使用 label 封裝，點擊卡片任何地方都會觸發裡面的 input -->
             <label for="meetingPicker" class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center cursor-pointer active:bg-stone-50 block">
                 <input type="date" id="meetingPicker" class="hidden-input" onchange="handleManualDate(this.value)">
-                
                 <div>
                     <p class="text-2xl font-bold tracking-tight text-stone-900" id="meetingDateText">--/--</p>
                     <p id="meetingStatus" class="text-[11px] text-stone-400 mt-1 font-medium italic">點擊卡片手動變更日期</p>
@@ -66,30 +60,46 @@
             </label>
         </section>
 
-        <!-- 搜尋列 -->
+        <!-- 2. 搜尋列 -->
         <div class="mb-6 relative">
             <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400"></i>
             <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄..." 
                 class="w-full bg-stone-200/50 border-none px-10 py-3 rounded-2xl text-md focus:bg-white transition-all outline-none">
         </div>
 
+        <!-- 3. 廠別快速篩選與紀錄列表 -->
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
         <div id="recordList" class="space-y-3"></div>
 
-        <section class="rounded-2xl bg-stone-200/40 p-4 mt-8">
-            <p class="text-[10px] text-stone-400 leading-relaxed text-center">
-                維修資料儲存於手機瀏覽器，清除快取將遺失。
-            </p>
+        <!-- 4. 強化後的安全警告區塊 (放在最下方) -->
+        <section class="mt-10 mb-6 px-1">
+            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5">
+                <div class="flex items-center gap-3 mb-3">
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600"></i>
+                    <h4 class="text-sm font-bold text-amber-800">資料安全與存取須知</h4>
+                </div>
+                <div class="space-y-2.5">
+                    <p class="text-[12px] text-amber-700 leading-relaxed">
+                        ● <span class="font-bold">本地儲存：</span>本系統為確保隱私，紀錄僅存放於您手機瀏覽器的緩存（LocalStorage）中。
+                    </p>
+                    <p class="text-[12px] text-amber-700 leading-relaxed">
+                        ● <span class="font-bold">遺失風險：</span>若執行「清除網站瀏覽資料」或「使用無痕模式」，現有紀錄將會<span class="underline">永久消失</span>。
+                    </p>
+                    <p class="text-[12px] text-amber-700 leading-relaxed">
+                        ● <span class="font-bold">備份建議：</span>請定期使用「分享」功能將重要內容轉錄至 LINE 或雲端記事本進行異地備份。
+                    </p>
+                </div>
+            </div>
         </section>
     </main>
 
-    <!-- 表單 (新增/修改) -->
+    <!-- 表單彈窗 (略，邏輯與之前一致) -->
     <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
         <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
             <div class="flex justify-between items-center mb-6 px-2">
-                <h2 id="formTitle" class="text-2xl font-bold">新紀錄</h2>
-                <button onclick="closeForm()" class="text-blue-600 font-semibold">取消</button>
+                <h2 id="formTitle" class="text-2xl font-bold">紀錄</h2>
+                <button onclick="closeForm()" class="text-blue-600 font-semibold text-lg">取消</button>
             </div>
             <form onsubmit="saveRecord(event)" class="space-y-4">
                 <div class="ios-card p-1">
@@ -122,7 +132,6 @@
         let selectedFactory = '全部';
         let editModeId = null;
 
-        // --- 月會調整 (iOS 深度優化版) ---
         function handleManualDate(val) {
             if(!val) return;
             localStorage.setItem('fixlog_manual_meeting', val);
@@ -131,7 +140,7 @@
         }
 
         function resetMeetingDate(e) {
-            if(e) e.stopPropagation(); // 防止觸發 label 的點擊
+            if(e) e.stopPropagation(); 
             localStorage.removeItem('fixlog_manual_meeting');
             updateMeeting();
             showToast("🔄 已恢復自動計算");
@@ -163,11 +172,10 @@
             else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full"; }
         }
 
-        // --- 以下其餘邏輯維持不變 ---
         function openFormForAdd() {
             editModeId = null; document.querySelector('form').reset();
             document.getElementById('formTitle').innerText = "新紀錄";
-            document.getElementById('saveBtn').innerText = "儲存紀錄";
+            document.getElementById('saveBtn').innerText = "儲 | 存";
             currentImageData = null; document.getElementById('imgPreviewContainer').classList.add('hidden');
             document.getElementById('uploadPrompt').classList.remove('hidden');
             const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
@@ -253,7 +261,7 @@
             event.stopPropagation();
             const r = records.find(x => x.id === id);
             const t = `【維修回報】\n廠別：${r.factory}\n設備：${r.model}\n內容：${r.content}`;
-            navigator.clipboard.writeText(t).then(() => showToast("📋 已複製"));
+            navigator.clipboard.writeText(t).then(() => showToast("📋 已複製內容"));
         }
 
         function showToast(msg) {
@@ -287,9 +295,9 @@
                         </div>
                         <div class="flex items-center gap-2"><h3 class="font-bold text-stone-900">${r.model}</h3><span class="text-xs text-stone-400">#${r.sn}</span></div>
                         <div class="collapse-content"><div class="inner-content">
-                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600">${r.content}</div>
-                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl">` : ''}
-                            <div class="flex justify-end mt-3"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400">刪除</button></div>
+                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600 leading-relaxed">${r.content}</div>
+                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl shadow-sm border border-stone-100">` : ''}
+                            <div class="flex justify-end mt-3"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400 active:text-red-600">刪除紀錄</button></div>
                         </div></div>
                     </div>
                 </div>
