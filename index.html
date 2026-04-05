@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FixLog | 設備查修紀錄助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-20">
+
+    <!-- 頂部導航欄 -->
+    <nav class="bg-slate-900 text-white sticky top-0 z-30 shadow-lg">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+                    <i data-lucide="wrench" class="w-6 h-6 text-blue-400"></i> FixLog
+                </h1>
+            </div>
+            <button onclick="toggleForm()" id="addBtn" class="bg-blue-600 hover:bg-blue-500 p-2 rounded-full transition-all">
+                <i data-lucide="plus" id="plusIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-4">
+        
+        <!-- 新增表單區塊 (預設隱藏) -->
+        <div id="repairForm" class="hidden bg-white rounded-2xl shadow-xl border border-slate-200 p-6 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
+            <h2 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2">
+                <i data-lucide="clipboard-edit" class="text-blue-600"></i> 新增維修日誌
+            </h2>
+            <form onsubmit="saveRecord(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">廠別</label>
+                        <select id="f_factory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>A廠</option><option>B廠</option><option>C廠</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">日期</label>
+                        <input type="date" id="f_date" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">設備機型</label>
+                    <input type="text" id="f_model" placeholder="例如：CNC-01" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">維修項目</label>
+                    <select id="f_item" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>更換零件</option><option>定期保養</option><option>校正作業</option><option>故障排除</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">維修內容內容</label>
+                    <textarea id="f_content" rows="3" placeholder="請描述異常現象與處理結果..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">圖片上傳</label>
+                    <div class="relative border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:bg-slate-50 transition">
+                        <input type="file" id="f_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
+                        <div id="imgPreviewContainer" class="hidden">
+                            <img id="imgPreview" src="" class="max-h-48 mx-auto rounded-lg shadow-sm">
+                            <p class="text-xs text-blue-500 mt-2">點擊更換照片</p>
+                        </div>
+                        <div id="uploadPrompt">
+                            <i data-lucide="camera" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+                            <span class="text-sm text-slate-500">點擊拍照或選擇異常圖片</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 shadow-lg transition active:scale-95">儲存紀錄</button>
+            </form>
+        </div>
+
+        <!-- 搜尋與過濾區 -->
+        <div class="flex gap-3 mb-6">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
+                <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋機型、關鍵字..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <select id="factoryFilter" onchange="renderRecords()" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm outline-none font-medium text-slate-600">
+                <option value="全部">全部廠別</option>
+                <option value="A廠">A廠</option>
+                <option value="B廠">B廠</option>
+                <option value="C廠">C廠</option>
+            </select>
+        </div>
+
+        <!-- 紀錄列表容器 -->
+        <div id="recordList" class="space-y-4">
+            <!-- 紀錄會在這裡動態生成 -->
+        </div>
+
+    </main>
+
+    <script>
+        // 初始化
+        let records = JSON.parse(localStorage.getItem('fixlog_data')) || [];
+        let currentImageData = null;
+
+        document.getElementById('f_date').valueAsDate = new Date();
+
+        function toggleForm() {
+            const form = document.getElementById('repairForm');
+            const plusIcon = document.getElementById('plusIcon');
+            form.classList.toggle('hidden');
+            plusIcon.style.transform = form.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(45deg)';
+        }
+
+        function previewImage(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImageData = e.target.result;
+                    document.getElementById('imgPreview').src = currentImageData;
+                    document.getElementById('imgPreviewContainer').classList.remove('hidden');
+                    document.getElementById('uploadPrompt').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveRecord(e) {
+            e.preventDefault();
+            const newRecord = {
+                id: Date.now(),
+                factory: document.getElementById('f_factory').value,
+                date: document.getElementById('f_date').value,
+                model: document.getElementById('f_model').value,
+                item: document.getElementById('f_item').value,
+                content: document.getElementById('f_content').value,
+                image: currentImageData
+            };
+
+            records.unshift(newRecord);
+            localStorage.setItem('fixlog_data', JSON.stringify(records));
+            
+            // 重置表單
+            e.target.reset();
+            document.getElementById('f_date').valueAsDate = new Date();
+            currentImageData = null;
+            document.getElementById('imgPreviewContainer').classList.add('hidden');
+            document.getElementById('uploadPrompt').classList.remove('hidden');
+            
+            toggleForm();
+            renderRecords();
+        }
+
+        function deleteRecord(id) {
+            if(confirm('確定要刪除這筆紀錄嗎？')) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem('fixlog_data', JSON.stringify(records));
+                renderRecords();
+            }
+        }
+
+        function renderRecords() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterValue = document.getElementById('factoryFilter').value;
+            const listElement = document.getElementById('recordList');
+            
+            const filtered = records.filter(r => {
+                const matchSearch = r.model.toLowerCase().includes(searchTerm) || r.content.toLowerCase().includes(searchTerm);
+                const matchFactory = filterValue === '全部' || r.factory === filterValue;
+                return matchSearch && matchFactory;
+            });
+
+            listElement.innerHTML = filtered.length ? filtered.map(r => `
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition group">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded tracking-wider">${r.factory}</span>
+                                <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded tracking-wider">${r.item}</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800">${r.model}</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block mb-2">${r.date}</span>
+                            <button onclick="deleteRecord(${r.id})" class="text-slate-300 hover:text-red-500 transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1 bg-slate-50 rounded-xl p-3 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">${r.content}</div>
+                        ${r.image ? `<img src="${r.image}" class="w-full md:w-32 h-32 object-cover rounded-xl border border-slate-100 shadow-inner">` : ''}
+                    </div>
+                </div>
+            `).join('') : `
+                <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 opacity-20"></i>
+                    <p>尚未有任何紀錄</p>
+                </div>
+            `;
+            
+            lucide.createIcons();
+        }
+
+        // 初始渲染
+        renderRecords();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
