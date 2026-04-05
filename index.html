@@ -18,14 +18,11 @@
         .inner-content { overflow: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .btn-active:active { transform: scale(0.95); opacity: 0.7; }
-        
-        /* 隱藏但保持功能的輸入框 */
         .hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
     </style>
 </head>
 <body class="pb-10">
 
-    <!-- 導覽列 -->
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
         <div class="flex flex-col">
             <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統</span>
@@ -37,8 +34,7 @@
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        
-        <!-- 1. 月會提醒區塊 (已優化手機點擊) -->
+        <!-- 月會提醒區塊 -->
         <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
@@ -47,7 +43,6 @@
                     <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
                 </div>
             </div>
-            
             <label for="meetingPicker" class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center cursor-pointer active:bg-stone-50 block">
                 <input type="date" id="meetingPicker" class="hidden-input" onchange="handleManualDate(this.value)">
                 <div>
@@ -60,77 +55,93 @@
             </label>
         </section>
 
-        <!-- 2. 搜尋列 -->
+        <!-- 搜尋與列表 -->
         <div class="mb-6 relative">
             <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400"></i>
             <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄..." 
                 class="w-full bg-stone-200/50 border-none px-10 py-3 rounded-2xl text-md focus:bg-white transition-all outline-none">
         </div>
-
-        <!-- 3. 廠別快速篩選與紀錄列表 -->
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
         <div id="recordList" class="space-y-3"></div>
 
-        <!-- 4. 強化後的安全警告區塊 (放在最下方) -->
+        <!-- 安全警告區塊 -->
         <section class="mt-10 mb-6 px-1">
             <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5">
                 <div class="flex items-center gap-3 mb-3">
                     <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600"></i>
                     <h4 class="text-sm font-bold text-amber-800">資料安全與存取須知</h4>
                 </div>
-                <div class="space-y-2.5">
-                    <p class="text-[12px] text-amber-700 leading-relaxed">
-                        ● <span class="font-bold">本地儲存：</span>本系統為確保隱私，紀錄僅存放於您手機瀏覽器的緩存（LocalStorage）中。
-                    </p>
-                    <p class="text-[12px] text-amber-700 leading-relaxed">
-                        ● <span class="font-bold">遺失風險：</span>若執行「清除網站瀏覽資料」或「使用無痕模式」，現有紀錄將會<span class="underline">永久消失</span>。
-                    </p>
-                    <p class="text-[12px] text-amber-700 leading-relaxed">
-                        ● <span class="font-bold">備份建議：</span>請定期使用「分享」功能將重要內容轉錄至 LINE 或雲端記事本進行異地備份。
-                    </p>
+                <div class="space-y-2.5 text-[12px] text-amber-700 leading-relaxed">
+                    <p>● <span class="font-bold">本地儲存：</span>紀錄僅存放在手機瀏覽器中，不進行雲端同步。</p>
+                    <p>● <span class="font-bold">遺失風險：</span>清除網站資料或無痕模式會導致紀錄<span class="underline text-amber-900">永久遺失</span>。</p>
+                    <p>● <span class="font-bold">備份建議：</span>請定期使用分享功能將重要內容備份至 LINE 或記事本。</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- 表單彈窗 (略，邏輯與之前一致) -->
+    <!-- 表單彈窗 -->
     <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
         <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
             <div class="flex justify-between items-center mb-6 px-2">
-                <h2 id="formTitle" class="text-2xl font-bold">紀錄</h2>
+                <h2 id="formTitle" class="text-2xl font-bold text-stone-800">紀錄</h2>
                 <button onclick="closeForm()" class="text-blue-600 font-semibold text-lg">取消</button>
             </div>
             <form onsubmit="saveRecord(event)" class="space-y-4">
                 <div class="ios-card p-1">
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm">廠別</span><input type="text" id="f_factory" class="flex-1 bg-transparent text-sm outline-none" required></div>
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm">時間</span><input type="datetime-local" id="f_datetime" class="flex-1 bg-transparent text-sm outline-none"></div>
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm">機型</span><input type="text" id="f_model" class="flex-1 bg-transparent text-sm outline-none" required></div>
-                    <div class="flex p-4"><span class="w-20 text-stone-400 text-sm">機號</span><input type="text" id="f_sn" class="flex-1 bg-transparent text-sm outline-none"></div>
+                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">廠別</span><input type="text" id="f_factory" class="flex-1 bg-transparent text-sm outline-none" placeholder="輸入廠區" required></div>
+                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">時間</span><input type="datetime-local" id="f_datetime" class="flex-1 bg-transparent text-sm outline-none"></div>
+                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">機型</span><input type="text" id="f_model" class="flex-1 bg-transparent text-sm outline-none" placeholder="設備型號" required></div>
+                    <div class="flex p-4"><span class="w-20 text-stone-400 text-sm font-medium">機號</span><input type="text" id="f_sn" class="flex-1 bg-transparent text-sm outline-none" placeholder="流水編號"></div>
                 </div>
                 <div class="ios-card p-4">
-                    <input type="text" id="f_item" placeholder="維修項目" class="w-full bg-transparent text-sm outline-none mb-3 border-b border-stone-50 pb-2">
-                    <textarea id="f_content" rows="4" placeholder="處理細節..." class="w-full bg-transparent text-sm outline-none" required></textarea>
+                    <input type="text" id="f_item" placeholder="維修項目 (例如：馬達故障)" class="w-full bg-transparent text-sm font-bold outline-none mb-3 border-b border-stone-100 pb-2">
+                    <textarea id="f_content" rows="5" placeholder="詳細處理細節..." class="w-full bg-transparent text-sm outline-none leading-relaxed" required></textarea>
                 </div>
                 <div class="flex gap-3">
                     <div class="flex-1 relative ios-card p-4 text-center overflow-hidden">
                         <input type="file" accept="image/*" class="absolute inset-0 opacity-0" onchange="processImage(this)">
-                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded"></div>
-                        <div id="uploadPrompt" class="text-stone-400 text-[10px] font-bold"><i data-lucide="camera" class="w-5 h-5 mx-auto mb-1"></i>照片</div>
+                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded shadow-sm"></div>
+                        <div id="uploadPrompt" class="text-stone-400 text-[11px] font-bold"><i data-lucide="camera" class="w-5 h-5 mx-auto mb-1"></i>添加照片</div>
                     </div>
-                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl font-bold btn-active">儲存紀錄</button>
+                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl font-bold btn-active shadow-md">儲存紀錄</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-white shadow-xl px-6 py-3 rounded-full text-xs font-bold opacity-0 transition-all z-[200]"></div>
+    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-stone-800 text-white shadow-2xl px-6 py-3 rounded-full text-xs font-bold opacity-0 transition-all z-[200]"></div>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('fixlog_v13_stable')) || [];
+        let records = JSON.parse(localStorage.getItem('fixlog_v14_final')) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
         let editModeId = null;
+
+        function updateMeeting() {
+            const now = new Date(); now.setHours(0,0,0,0);
+            let target;
+            const manualDate = localStorage.getItem('fixlog_manual_meeting');
+            const resetBtn = document.getElementById('resetMeetingBtn');
+            if (manualDate) {
+                target = new Date(manualDate);
+                resetBtn.classList.remove('hidden');
+                document.getElementById('meetingStatus').innerText = "📍 目前為手動設定日期";
+            } else {
+                const currentDay = now.getDay();
+                const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
+                target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
+                resetBtn.classList.add('hidden');
+                document.getElementById('meetingStatus').innerText = "✨ 自動計算：本週五開會";
+            }
+            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
+            const diff = Math.ceil((target - now) / 86400000);
+            const dc = document.getElementById('daysCount');
+            if (diff === 0) { dc.innerText = "今天"; dc.className = "text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full"; }
+            else if (diff < 0) { dc.innerText = `已過 ${Math.abs(diff)} 天`; dc.className = "text-[10px] font-bold bg-stone-100 text-stone-400 px-2 py-0.5 rounded-full"; }
+            else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full"; }
+        }
 
         function handleManualDate(val) {
             if(!val) return;
@@ -146,36 +157,10 @@
             showToast("🔄 已恢復自動計算");
         }
 
-        function updateMeeting() {
-            const now = new Date(); now.setHours(0,0,0,0);
-            let target;
-            const manualDate = localStorage.getItem('fixlog_manual_meeting');
-            const resetBtn = document.getElementById('resetMeetingBtn');
-
-            if (manualDate) {
-                target = new Date(manualDate);
-                resetBtn.classList.remove('hidden');
-                document.getElementById('meetingStatus').innerText = "📍 目前為手動設定日期";
-            } else {
-                const currentDay = now.getDay();
-                const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
-                target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
-                resetBtn.classList.add('hidden');
-                document.getElementById('meetingStatus').innerText = "✨ 自動計算：本週五開會";
-            }
-
-            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
-            const diff = Math.ceil((target - now) / 86400000);
-            const dc = document.getElementById('daysCount');
-            if (diff === 0) { dc.innerText = "今天"; dc.className = "text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full"; }
-            else if (diff < 0) { dc.innerText = `已過 ${Math.abs(diff)} 天`; dc.className = "text-[10px] font-bold bg-stone-100 text-stone-400 px-2 py-0.5 rounded-full"; }
-            else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full"; }
-        }
-
         function openFormForAdd() {
             editModeId = null; document.querySelector('form').reset();
-            document.getElementById('formTitle').innerText = "新紀錄";
-            document.getElementById('saveBtn').innerText = "儲 | 存";
+            document.getElementById('formTitle').innerText = "新增修護紀錄";
+            document.getElementById('saveBtn').innerText = "儲存紀錄";
             currentImageData = null; document.getElementById('imgPreviewContainer').classList.add('hidden');
             document.getElementById('uploadPrompt').classList.remove('hidden');
             const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
@@ -183,14 +168,16 @@
             document.getElementById('repairForm').classList.remove('hidden');
         }
 
-        function openFormForEdit(id) {
+        function openFormForEdit(id, event) {
+            if(event) event.stopPropagation();
             const r = records.find(x => x.id === id); if (!r) return;
             editModeId = id;
-            document.getElementById('formTitle').innerText = "編輯紀錄";
+            document.getElementById('formTitle').innerText = "編輯歷史紀錄";
+            document.getElementById('saveBtn').innerText = "更新紀錄";
             document.getElementById('f_factory').value = r.factory;
             document.getElementById('f_datetime').value = r.datetime.replace(' ', 'T');
             document.getElementById('f_model').value = r.model;
-            document.getElementById('f_sn').value = r.sn;
+            document.getElementById('f_sn').value = r.sn === '-' ? '' : r.sn;
             document.getElementById('f_item').value = r.item;
             document.getElementById('f_content').value = r.content;
             if (r.image) {
@@ -232,42 +219,52 @@
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
                 model: document.getElementById('f_model').value.trim(),
                 sn: document.getElementById('f_sn').value.trim() || '-',
-                item: document.getElementById('f_item').value.trim() || '維修',
+                item: document.getElementById('f_item').value.trim() || '未分類修護',
                 content: document.getElementById('f_content').value.trim(),
                 image: currentImageData
             };
             if (editModeId) {
                 const i = records.findIndex(x => x.id === editModeId);
                 records[i] = { ...records[i], ...d };
-                showToast("✅ 已更新");
+                showToast("✅ 紀錄已成功更新");
             } else {
                 records.unshift({ id: "ID" + Date.now(), ...d });
-                showToast("✅ 已儲存");
+                showToast("✅ 紀錄已儲存至手機");
             }
-            localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
+            localStorage.setItem('fixlog_v14_final', JSON.stringify(records));
             closeForm(); renderRecords();
         }
 
         function deleteRecord(id, event) {
             event.stopPropagation();
-            if(confirm('確定刪除？')) {
+            if(confirm('確定要永久刪除此筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_v13_stable', JSON.stringify(records));
-                renderRecords(); showToast("🗑 已刪除");
+                localStorage.setItem('fixlog_v14_final', JSON.stringify(records));
+                renderRecords(); showToast("🗑 紀錄已刪除");
             }
         }
 
         function shareRecord(id, event) {
             event.stopPropagation();
             const r = records.find(x => x.id === id);
-            const t = `【維修回報】\n廠別：${r.factory}\n設備：${r.model}\n內容：${r.content}`;
-            navigator.clipboard.writeText(t).then(() => showToast("📋 已複製內容"));
+            // 完整分享內容
+            const t = `【FixLog 維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model}\n機號：${r.sn}\n項目：${r.item}\n內容：${r.content}`;
+            
+            if (navigator.share) {
+                navigator.share({ title: '維修回報', text: t }).catch(() => copyToClip(t));
+            } else {
+                copyToClip(t);
+            }
+        }
+
+        function copyToClip(text) {
+            navigator.clipboard.writeText(text).then(() => showToast("📋 內容已完整複製到剪貼簿"));
         }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.style.opacity = '1'; t.style.top = '60px';
-            setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2000);
+            setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2500);
         }
 
         function renderRecords() {
@@ -276,28 +273,32 @@
             const fr = document.getElementById('factoryFilterRow');
             const facs = ['全部', ...new Set(records.map(r => r.factory))];
             fr.innerHTML = facs.map(f => `
-                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white' : 'bg-white text-stone-400 border border-stone-100'}">${f}</button>
+                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white shadow-sm' : 'bg-white text-stone-400 border border-stone-100'}">${f}</button>
             `).join('');
             const res = records.filter(r => {
-                const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s);
+                const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s) || r.item.toLowerCase().includes(s);
                 return m && (selectedFactory === '全部' || r.factory === selectedFactory);
             });
             list.innerHTML = res.map(r => `
                 <div class="ios-card overflow-hidden mb-3" onclick="this.classList.toggle('is-open')">
                     <div class="p-5">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-bold text-stone-400">${r.factory} · ${r.datetime}</span>
+                            <span class="text-[10px] font-bold text-stone-400 tracking-wider">${r.factory} · ${r.datetime}</span>
                             <div class="flex gap-4">
-                                <button onclick="openFormForEdit('${r.id}')" class="p-1"><i data-lucide="pencil" class="w-4 h-4 text-stone-300"></i></button>
+                                <button onclick="openFormForEdit('${r.id}', event)" class="p-1"><i data-lucide="pencil" class="w-4 h-4 text-stone-300"></i></button>
                                 <button onclick="shareRecord('${r.id}', event)" class="p-1"><i data-lucide="square-arrow-up" class="w-5 h-5 text-blue-500"></i></button>
                                 <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300"></i>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2"><h3 class="font-bold text-stone-900">${r.model}</h3><span class="text-xs text-stone-400">#${r.sn}</span></div>
+                        <div class="flex items-baseline gap-2 mb-1">
+                            <h3 class="font-bold text-stone-900">${r.model}</h3>
+                            <span class="text-[10px] text-stone-400">SN:${r.sn}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-stone-600 mb-2">${r.item}</p>
                         <div class="collapse-content"><div class="inner-content">
-                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600 leading-relaxed">${r.content}</div>
-                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl shadow-sm border border-stone-100">` : ''}
-                            <div class="flex justify-end mt-3"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400 active:text-red-600">刪除紀錄</button></div>
+                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-700 leading-relaxed border border-stone-100">${r.content}</div>
+                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl shadow-sm border border-stone-200">` : ''}
+                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400 px-2 py-1 active:bg-red-50 rounded-lg">刪除紀錄</button></div>
                         </div></div>
                     </div>
                 </div>
