@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FixLog | 專業查修系統</title>
+    
+    <!-- App 圖示與名稱設定 -->
+    <link rel="apple-touch-icon" href="https://img.icons8.com/origami/180/wrench.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="https://img.icons8.com/origami/192/wrench.png">
+    <meta name="apple-mobile-web-app-title" content="FixLog">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root { --ios-bg: #f2f2f7; --ios-card: #ffffff; --apple-green: #435b31; }
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", sans-serif; background-color: var(--ios-bg); color: #000; -webkit-font-smoothing: antialiased; }
@@ -25,7 +34,7 @@
 
     <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
         <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統</span>
+            <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統 v2.0</span>
             <h1 class="text-xl font-bold tracking-tight">查修日誌</h1>
         </div>
         <button onclick="openFormForAdd()" class="bg-[#435b31] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm btn-active">
@@ -34,7 +43,7 @@
     </nav>
 
     <main class="max-w-xl mx-auto p-5">
-        <!-- 月會提醒區塊 -->
+        <!-- 月會提醒 -->
         <section class="mb-8">
             <div class="flex justify-between items-end mb-2 px-1">
                 <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
@@ -65,17 +74,33 @@
         <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
         <div id="recordList" class="space-y-3"></div>
 
-        <!-- 安全警告區塊 -->
+        <!-- 強化安全備份區塊 -->
         <section class="mt-10 mb-6 px-1">
-            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5 shadow-sm">
-                <div class="flex items-center gap-3 mb-3">
-                    <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600"></i>
-                    <h4 class="text-sm font-bold text-amber-800">資料安全與存取須知</h4>
+            <div class="bg-stone-800 rounded-[24px] p-6 shadow-xl text-white">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-2 bg-amber-500 rounded-lg">
+                        <i data-lucide="database" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold">資料管理與備份</h4>
+                        <p class="text-[10px] text-stone-400">永恆金鑰已啟動：數據受到本地保護</p>
+                    </div>
                 </div>
-                <div class="space-y-2.5 text-[12px] text-amber-700 leading-relaxed font-medium">
-                    <p>● <span class="font-bold text-amber-900">本地儲存：</span>所有資料僅保存在此手機瀏覽器內，不會上傳雲端。</p>
-                    <p>● <span class="font-bold text-amber-900">遺失風險：</span>若執行「清除瀏覽資料」或使用「無痕模式」，資料將永久消失。</p>
-                    <p>● <span class="font-bold text-amber-900">備份建議：</span>請定期點擊分享按鈕，將紀錄「複製」並貼上至 LINE 或記事本備份。</p>
+                
+                <div class="space-y-3 mb-6">
+                    <p class="text-[11px] text-stone-300 leading-relaxed">
+                        ● 紀錄目前儲存於此設備，清空瀏覽器緩存將導致資料消失。建議每月執行一次「匯出備份」。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportData()" class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95">
+                        <i data-lucide="download" class="w-4 h-4"></i> 匯出備份
+                    </button>
+                    <label class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer">
+                        <i data-lucide="upload" class="w-4 h-4"></i> 匯入還原
+                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
+                    </label>
                 </div>
             </div>
         </section>
@@ -83,22 +108,22 @@
 
     <!-- 表單彈窗 -->
     <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
-        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto shadow-2xl">
+        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto">
             <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
             <div class="flex justify-between items-center mb-6 px-2">
-                <h2 id="formTitle" class="text-2xl font-bold text-stone-800">紀錄</h2>
+                <h2 id="formTitle" class="text-2xl font-bold">紀錄</h2>
                 <button onclick="closeForm()" class="text-blue-600 font-semibold text-lg">取消</button>
             </div>
             <form onsubmit="saveRecord(event)" class="space-y-4">
                 <div class="ios-card p-1">
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">廠別</span><input type="text" id="f_factory" class="flex-1 bg-transparent text-sm outline-none" placeholder="廠區名稱" required></div>
+                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">廠別</span><input type="text" id="f_factory" class="flex-1 bg-transparent text-sm outline-none" required></div>
                     <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">時間</span><input type="datetime-local" id="f_datetime" class="flex-1 bg-transparent text-sm outline-none"></div>
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">機型</span><input type="text" id="f_model" class="flex-1 bg-transparent text-sm outline-none" placeholder="設備型號" required></div>
-                    <div class="flex p-4"><span class="w-20 text-stone-400 text-sm font-medium">機號</span><input type="text" id="f_sn" class="flex-1 bg-transparent text-sm outline-none" placeholder="編號 (選填)"></div>
+                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">機型</span><input type="text" id="f_model" class="flex-1 bg-transparent text-sm outline-none" required></div>
+                    <div class="flex p-4"><span class="w-20 text-stone-400 text-sm font-medium">機號</span><input type="text" id="f_sn" class="flex-1 bg-transparent text-sm outline-none"></div>
                 </div>
                 <div class="ios-card p-4">
-                    <input type="text" id="f_item" placeholder="維修項目 (例：更換軸承)" class="w-full bg-transparent text-sm font-bold outline-none mb-3 border-b border-stone-100 pb-2">
-                    <textarea id="f_content" rows="5" placeholder="詳細處理過程與備註..." class="w-full bg-transparent text-sm outline-none leading-relaxed" required></textarea>
+                    <input type="text" id="f_item" placeholder="維修項目" class="w-full bg-transparent text-sm font-bold outline-none mb-3 border-b border-stone-100 pb-2">
+                    <textarea id="f_content" rows="5" placeholder="處理細節..." class="w-full bg-transparent text-sm outline-none" required></textarea>
                 </div>
                 <div class="flex gap-3">
                     <div class="flex-1 relative ios-card p-4 text-center overflow-hidden">
@@ -106,22 +131,65 @@
                         <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded shadow-sm"></div>
                         <div id="uploadPrompt" class="text-stone-400 text-[11px] font-bold"><i data-lucide="camera" class="w-5 h-5 mx-auto mb-1"></i>添加照片</div>
                     </div>
-                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl font-bold btn-active shadow-md">儲存紀錄</button>
+                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl font-bold btn-active">儲存紀錄</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 提示框 (Toast) -->
-    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-stone-800 text-white shadow-2xl px-6 py-3 rounded-full text-xs font-bold opacity-0 transition-all z-[200] pointer-events-none"></div>
+    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-stone-900 text-white shadow-2xl px-6 py-3 rounded-full text-xs font-bold opacity-0 transition-all z-[200]"></div>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('fixlog_v15_final')) || [];
+        // 永恆金鑰：確保代碼更新後資料依然能抓到
+        const DB_KEY = 'FIXLOG_MASTER_DATABASE';
+        let records = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         let currentImageData = null;
         let selectedFactory = '全部';
         let editModeId = null;
 
-        // 月會邏輯
+        // 1. 匯出功能
+        function exportData() {
+            if (records.length === 0) {
+                showToast("❌ 目前沒有紀錄可匯出");
+                return;
+            }
+            const dataStr = JSON.stringify(records, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const date = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `FixLog_Backup_${date}.json`;
+            link.click();
+            showToast("💾 備份檔案已下載");
+        }
+
+        // 2. 匯入功能
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        if (confirm(`確定要匯入 ${imported.length} 筆紀錄嗎？這將會覆蓋目前的資料！`)) {
+                            records = imported;
+                            localStorage.setItem(DB_KEY, JSON.stringify(records));
+                            renderRecords();
+                            showToast("✅ 資料還原成功");
+                        }
+                    } else {
+                        throw new Error();
+                    }
+                } catch (err) {
+                    showToast("❌ 錯誤的備份檔案格式");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // 清除 input 讓下次可選同個檔案
+        }
+
         function updateMeeting() {
             const now = new Date(); now.setHours(0,0,0,0);
             let target;
@@ -160,14 +228,11 @@
             showToast("🔄 已恢復自動計算");
         }
 
-        // 表單邏輯
         function openFormForAdd() {
-            editModeId = null; 
-            document.querySelector('form').reset();
-            document.getElementById('formTitle').innerText = "新增修護紀錄";
+            editModeId = null; document.querySelector('form').reset();
+            document.getElementById('formTitle').innerText = "新增紀錄";
             document.getElementById('saveBtn').innerText = "儲存紀錄";
-            currentImageData = null; 
-            document.getElementById('imgPreviewContainer').classList.add('hidden');
+            currentImageData = null; document.getElementById('imgPreviewContainer').classList.add('hidden');
             document.getElementById('uploadPrompt').classList.remove('hidden');
             const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
             document.getElementById('f_datetime').value = n.toISOString().slice(0, 16);
@@ -179,7 +244,7 @@
             const r = records.find(x => x.id === id); if (!r) return;
             editModeId = id;
             document.getElementById('formTitle').innerText = "編輯紀錄";
-            document.getElementById('saveBtn').innerText = "更新紀錄"; // 修改時顯示更新
+            document.getElementById('saveBtn').innerText = "更新紀錄";
             document.getElementById('f_factory').value = r.factory;
             document.getElementById('f_datetime').value = r.datetime.replace(' ', 'T');
             document.getElementById('f_model').value = r.model;
@@ -187,8 +252,7 @@
             document.getElementById('f_item').value = r.item;
             document.getElementById('f_content').value = r.content;
             if (r.image) {
-                currentImageData = r.image; 
-                document.getElementById('imgPreview').src = r.image;
+                currentImageData = r.image; document.getElementById('imgPreview').src = r.image;
                 document.getElementById('imgPreviewContainer').classList.remove('hidden');
                 document.getElementById('uploadPrompt').classList.add('hidden');
             }
@@ -226,7 +290,7 @@
                 datetime: document.getElementById('f_datetime').value.replace('T', ' '),
                 model: document.getElementById('f_model').value.trim(),
                 sn: document.getElementById('f_sn').value.trim() || '-',
-                item: document.getElementById('f_item').value.trim() || '一般修護',
+                item: document.getElementById('f_item').value.trim() || '未分類',
                 content: document.getElementById('f_content').value.trim(),
                 image: currentImageData
             };
@@ -238,63 +302,24 @@
                 records.unshift({ id: "ID" + Date.now(), ...d });
                 showToast("✅ 紀錄已儲存");
             }
-            localStorage.setItem('fixlog_v15_final', JSON.stringify(records));
+            localStorage.setItem(DB_KEY, JSON.stringify(records));
             closeForm(); renderRecords();
         }
 
         function deleteRecord(id, event) {
             event.stopPropagation();
-            if(confirm('確定要永久刪除此紀錄嗎？')) {
+            if(confirm('確定刪除？')) {
                 records = records.filter(r => r.id !== id);
-                localStorage.setItem('fixlog_v15_final', JSON.stringify(records));
-                renderRecords(); showToast("🗑 紀錄已刪除");
+                localStorage.setItem(DB_KEY, JSON.stringify(records));
+                renderRecords(); showToast("🗑 紀錄已移除");
             }
         }
 
-        // 修改：直接複製到剪貼簿的功能
-        function copyRecordToClipboard(id, event) {
+        function copyRecord(id, event) {
             event.stopPropagation();
             const r = records.find(x => x.id === id);
-            if (!r) return;
-
-            // 組合完整內容
-            const text = `【FixLog 維修回報】\n` +
-                         `● 廠別：${r.factory}\n` +
-                         `● 時間：${r.datetime}\n` +
-                         `● 設備：${r.model}\n` +
-                         `● 機號：${r.sn}\n` +
-                         `● 項目：${r.item}\n` +
-                         `● 內容：${r.content}`;
-
-            // 執行複製
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast("📋 內容已完整複製");
-                }).catch(() => {
-                    fallbackCopyTextToClipboard(text);
-                });
-            } else {
-                fallbackCopyTextToClipboard(text);
-            }
-        }
-
-        // 備用複製方案 (針對舊版手機瀏覽器)
-        function fallbackCopyTextToClipboard(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showToast("📋 內容已複製");
-            } catch (err) {
-                showToast("❌ 無法複製");
-            }
-            document.body.removeChild(textArea);
+            const text = `【FixLog 維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model}\n項目：${r.item}\n內容：${r.content}`;
+            navigator.clipboard.writeText(text).then(() => showToast("📋 已複製到剪貼簿"));
         }
 
         function showToast(msg) {
@@ -308,37 +333,30 @@
             const list = document.getElementById('recordList');
             const fr = document.getElementById('factoryFilterRow');
             const facs = ['全部', ...new Set(records.map(r => r.factory))];
-            
             fr.innerHTML = facs.map(f => `
                 <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white' : 'bg-white text-stone-400 border border-stone-100'}">${f}</button>
             `).join('');
-
             const res = records.filter(r => {
-                const match = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s) || r.item.toLowerCase().includes(s);
-                return match && (selectedFactory === '全部' || r.factory === selectedFactory);
+                const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s);
+                return m && (selectedFactory === '全部' || r.factory === selectedFactory);
             });
-
             list.innerHTML = res.map(r => `
                 <div class="ios-card overflow-hidden mb-3" onclick="this.classList.toggle('is-open')">
                     <div class="p-5">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-bold text-stone-400 tracking-wider">${r.factory} · ${r.datetime}</span>
+                            <span class="text-[10px] font-bold text-stone-400">${r.factory} · ${r.datetime}</span>
                             <div class="flex gap-4">
                                 <button onclick="openFormForEdit('${r.id}', event)" class="p-1"><i data-lucide="pencil" class="w-4 h-4 text-stone-300"></i></button>
-                                <!-- 修改：按鈕圖示改為複製感，並執行複製功能 -->
-                                <button onclick="copyRecordToClipboard('${r.id}', event)" class="p-1 active:scale-90 transition-transform"><i data-lucide="copy" class="w-5 h-5 text-blue-500"></i></button>
+                                <button onclick="copyRecord('${r.id}', event)" class="p-1"><i data-lucide="copy" class="w-5 h-5 text-blue-500"></i></button>
                                 <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300"></i>
                             </div>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-1">
-                            <h3 class="font-bold text-stone-900">${r.model}</h3>
-                            <span class="text-[10px] text-stone-400 font-mono">SN:${r.sn}</span>
-                        </div>
-                        <p class="text-xs font-bold text-[#435b31] mb-2">${r.item}</p>
+                        <h3 class="font-bold text-stone-900">${r.model} <span class="text-xs text-stone-400 font-normal">#${r.sn}</span></h3>
+                        <p class="text-[11px] font-bold text-[#435b31] mt-0.5">${r.item}</p>
                         <div class="collapse-content"><div class="inner-content">
-                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-700 leading-relaxed border border-stone-100">${r.content}</div>
-                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl shadow-sm border border-stone-200">` : ''}
-                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400 px-2 py-1 active:bg-red-50 rounded-lg">刪除紀錄</button></div>
+                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600 leading-relaxed border border-stone-100">${r.content}</div>
+                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl shadow-sm">` : ''}
+                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400">刪除紀錄</button></div>
                         </div></div>
                     </div>
                 </div>
