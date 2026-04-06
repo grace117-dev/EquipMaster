@@ -1,371 +1,1058 @@
 <!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FixLog | 專業查修系統</title>
-    
-    <!-- App 圖示與名稱設定 -->
     <link rel="apple-touch-icon" href="https://img.icons8.com/origami/180/wrench.png">
     <link rel="icon" type="image/png" sizes="192x192" href="https://img.icons8.com/origami/192/wrench.png">
     <meta name="apple-mobile-web-app-title" content="FixLog">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --ios-bg: #f2f2f7; --ios-card: #ffffff; --apple-green: #435b31; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans TC", sans-serif; background-color: var(--ios-bg); color: #000; -webkit-font-smoothing: antialiased; }
-        .ios-card { background: var(--ios-card); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.02); transition: all 0.2s ease; position: relative; }
-        .ios-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
-        .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
-        .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
-        .is-open .arrow-icon { transform: rotate(90deg); }
-        .inner-content { overflow: hidden; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .btn-active:active { transform: scale(0.95); opacity: 0.7; }
-        .hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
-    </style>
+        :root {
+            --bg: #f0f0f5;
+            --card: #ffffff;
+            --green: #3a5129;
+            --green-light: #4e6e36;
+            --green-pale: #eaf2e3;
+            --accent: #d4a853;
+            --text: #111;
+            --sub: #888;
+            --border: rgba(0,0,0,0.06);
+            --shadow: 0 2px 12px rgba(0,0,0,0.07);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Noto Sans TC", -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+        }
+        /* ── Nav ── */
+        .ios-nav {
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: saturate(200%) blur(24px);
+            -webkit-backdrop-filter: saturate(200%) blur(24px);
+            border-bottom: 1px solid var(--border);
+        }
+        /* ── Cards ── */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:active { transform: scale(0.985); }
+
+```
+    /* ── Tab Bar ── */
+    .tab-bar {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+    }
+    .tab-btn { transition: color 0.2s; }
+    .tab-btn.active { color: var(--green); }
+    .tab-btn:not(.active) { color: #aaa; }
+    .tab-indicator {
+        position: absolute;
+        bottom: 6px;
+        width: 4px; height: 4px;
+        background: var(--green);
+        border-radius: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: opacity 0.2s;
+    }
+
+    /* ── Pages ── */
+    .page { display: none; animation: fadeUp 0.3s ease both; }
+    .page.active { display: block; }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Stats ── */
+    .stat-num {
+        font-family: "DM Mono", monospace;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+    }
+    .bar-wrap { background: #f0f0f0; border-radius: 99px; overflow: hidden; height: 8px; }
+    .bar-fill {
+        height: 100%; border-radius: 99px;
+        background: linear-gradient(90deg, var(--green), var(--green-light));
+        transition: width 0.8s cubic-bezier(.22,.68,0,1.2);
+        width: 0;
+    }
+
+    /* ── Donut Chart ── */
+    .donut-svg { transform: rotate(-90deg); }
+    .donut-seg { transition: stroke-dasharray 0.9s cubic-bezier(.22,.68,0,1.2); }
+
+    /* ── Record cards ── */
+    .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
+    .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
+    .is-open .arrow-icon { transform: rotate(90deg); }
+    .arrow-icon { transition: transform 0.25s ease; }
+    .inner-content { overflow: hidden; }
+
+    /* ── Pill filters ── */
+    .pill { border-radius: 99px; padding: 6px 16px; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; }
+    .pill.on { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(58,81,41,0.3); }
+    .pill.off { background: #fff; color: #999; border: 1px solid #e5e5e5; }
+
+    /* ── Form overlay ── */
+    .form-overlay { background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); }
+    .form-sheet { border-radius: 28px 28px 0 0; background: var(--bg); }
+    .form-field-row { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+    .form-field-row:last-child { border-bottom: none; }
+    .form-field-label { width: 72px; font-size: 13px; color: var(--sub); font-weight: 500; flex-shrink: 0; }
+    .form-field-input { flex: 1; background: transparent; font-size: 14px; outline: none; }
+
+    /* ── Misc ── */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+    .btn-press:active { transform: scale(0.94); opacity: 0.75; }
+    .badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; }
+
+    /* ── Gradient hero ── */
+    .dashboard-hero {
+        background: linear-gradient(135deg, var(--green) 0%, #2c4220 100%);
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 160px; height: 160px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .dashboard-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; right: 20px;
+        width: 120px; height: 120px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 50%;
+    }
+
+    /* ── Trend sparkline ── */
+    .sparkline { height: 32px; }
+
+    /* ── Meeting card ── */
+    .meeting-card {
+        border-left: 4px solid var(--green);
+    }
+
+    /* ── Record item status dot ── */
+    .record-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--green-pale);
+        border: 2px solid var(--green);
+        flex-shrink: 0;
+        margin-top: 3px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #bbb;
+    }
+
+    /* ── Toast ── */
+    #toast {
+        transition: opacity 0.3s ease, top 0.3s ease, transform 0.3s ease;
+        transform: translateX(-50%);
+    }
+
+    /* ── Animate in ── */
+    .animate-in {
+        animation: slideIn 0.35s ease both;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Month selector ── */
+    .month-btn {
+        background: #f0f0f0;
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--sub);
+        transition: all 0.2s;
+    }
+    .month-btn:hover { background: var(--green-pale); color: var(--green); }
+
+    /* ── FAB Add Button ── */
+    .add-fab {
+        background: linear-gradient(145deg, var(--green-light), var(--green));
+        box-shadow: 0 4px 20px rgba(58,81,41,0.45), 0 2px 8px rgba(0,0,0,0.15);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .add-fab:active {
+        transform: scale(0.9);
+        box-shadow: 0 2px 10px rgba(58,81,41,0.3);
+    }
+</style>
+```
+
 </head>
-<body class="pb-10">
+<body class="pb-24">
 
-    <nav class="ios-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-stone-200">
-        <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-stone-400 tracking-tight uppercase">FixLog 系統 v2.0</span>
-            <h1 class="text-xl font-bold tracking-tight">查修日誌</h1>
+<!-- ─── Nav ─── -->
+
+<nav class="ios-nav sticky top-0 z-50 px-5 py-3 flex justify-between items-center">
+    <div class="flex flex-col">
+        <span class="text-[9px] font-black text-stone-400 tracking-widest uppercase">FixLog v3.0</span>
+        <h1 id="navTitle" class="text-[19px] font-black tracking-tight">查修日誌</h1>
+    </div>
+    <div></div>
+</nav>
+
+<!-- ─── Main content area ─── -->
+
+<main class="max-w-xl mx-auto px-4 pt-4">
+
+```
+<!-- ══ PAGE: 儀表板 ══ -->
+<div id="page-dash" class="page active">
+
+    <!-- Hero Stats -->
+    <div class="dashboard-hero p-5 mb-4 text-white">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">本月查修</p>
+                <p class="stat-num text-5xl font-black leading-none" id="heroMonthCount">0</p>
+                <p class="text-[11px] opacity-50 mt-1" id="heroMonthLabel">筆紀錄</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] opacity-60 mb-1">vs 上月</p>
+                <p class="stat-num text-lg font-bold" id="heroMoM">—</p>
+            </div>
         </div>
-        <button onclick="openFormForAdd()" class="bg-[#435b31] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm btn-active">
-            <i data-lucide="plus" class="w-6 h-6"></i>
-        </button>
-    </nav>
-
-    <main class="max-w-xl mx-auto p-5">
-        <!-- 月會提醒 -->
-        <section class="mb-8">
-            <div class="flex justify-between items-end mb-2 px-1">
-                <h3 class="text-sm font-semibold text-stone-500">下次月會預告</h3>
-                <div class="flex gap-2">
-                    <button onclick="resetMeetingDate(event)" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full z-20">恢復自動</button>
-                    <span id="daysCount" class="text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">計算中...</span>
-                </div>
+        <div class="grid grid-cols-3 gap-3 pt-3 border-t border-white/10">
+            <div>
+                <p class="stat-num text-2xl font-black" id="heroTotal">0</p>
+                <p class="text-[10px] opacity-50 mt-0.5">累計紀錄</p>
             </div>
-            <label for="meetingPicker" class="ios-card p-5 border-l-4 border-[#435b31] flex justify-between items-center cursor-pointer active:bg-stone-50 block">
-                <input type="date" id="meetingPicker" class="hidden-input" onchange="handleManualDate(this.value)">
-                <div>
-                    <p class="text-2xl font-bold tracking-tight text-stone-900" id="meetingDateText">--/--</p>
-                    <p id="meetingStatus" class="text-[11px] text-stone-400 mt-1 font-medium italic">點擊卡片手動變更日期</p>
-                </div>
-                <div class="bg-stone-50 p-3 rounded-2xl pointer-events-none">
-                    <i data-lucide="calendar-days" class="w-6 h-6 text-[#435b31]"></i>
-                </div>
-            </label>
-        </section>
-
-        <!-- 搜尋列 -->
-        <div class="mb-6 relative">
-            <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400"></i>
-            <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄..." 
-                class="w-full bg-stone-200/50 border-none px-10 py-3 rounded-2xl text-md focus:bg-white transition-all outline-none">
-        </div>
-
-        <div id="factoryFilterRow" class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1"></div>
-        <div id="recordList" class="space-y-3"></div>
-
-        <!-- 強化安全備份區塊 -->
-        <section class="mt-10 mb-6 px-1">
-            <div class="bg-stone-800 rounded-[24px] p-6 shadow-xl text-white">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-2 bg-amber-500 rounded-lg">
-                        <i data-lucide="database" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold">資料管理與備份</h4>
-                        <p class="text-[10px] text-stone-400">永恆金鑰已啟動：數據受到本地保護</p>
-                    </div>
-                </div>
-                
-                <div class="space-y-3 mb-6">
-                    <p class="text-[11px] text-stone-300 leading-relaxed">
-                        ● 紀錄目前儲存於此設備，清空瀏覽器緩存將導致資料消失。建議每月執行一次「匯出備份」。
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="exportData()" class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95">
-                        <i data-lucide="download" class="w-4 h-4"></i> 匯出備份
-                    </button>
-                    <label class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer">
-                        <i data-lucide="upload" class="w-4 h-4"></i> 匯入還原
-                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
-                    </label>
-                </div>
+            <div>
+                <p class="stat-num text-2xl font-black" id="heroFactories">0</p>
+                <p class="text-[10px] opacity-50 mt-0.5">廠別數量</p>
             </div>
-        </section>
-    </main>
-
-    <!-- 表單彈窗 -->
-    <div id="repairForm" class="hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
-        <div class="absolute bottom-0 w-full bg-[#f2f2f7] rounded-t-[30px] p-6 max-h-[95vh] overflow-y-auto">
-            <div class="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-6"></div>
-            <div class="flex justify-between items-center mb-6 px-2">
-                <h2 id="formTitle" class="text-2xl font-bold">紀錄</h2>
-                <button onclick="closeForm()" class="text-blue-600 font-semibold text-lg">取消</button>
+            <div>
+                <p class="stat-num text-2xl font-black" id="heroWeek">0</p>
+                <p class="text-[10px] opacity-50 mt-0.5">本週新增</p>
             </div>
-            <form onsubmit="saveRecord(event)" class="space-y-4">
-                <div class="ios-card p-1">
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">廠別</span><input type="text" id="f_factory" class="flex-1 bg-transparent text-sm outline-none" required></div>
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">時間</span><input type="datetime-local" id="f_datetime" class="flex-1 bg-transparent text-sm outline-none"></div>
-                    <div class="flex border-b border-stone-100 p-4"><span class="w-20 text-stone-400 text-sm font-medium">機型</span><input type="text" id="f_model" class="flex-1 bg-transparent text-sm outline-none" required></div>
-                    <div class="flex p-4"><span class="w-20 text-stone-400 text-sm font-medium">機號</span><input type="text" id="f_sn" class="flex-1 bg-transparent text-sm outline-none"></div>
-                </div>
-                <div class="ios-card p-4">
-                    <input type="text" id="f_item" placeholder="維修項目" class="w-full bg-transparent text-sm font-bold outline-none mb-3 border-b border-stone-100 pb-2">
-                    <textarea id="f_content" rows="5" placeholder="處理細節..." class="w-full bg-transparent text-sm outline-none" required></textarea>
-                </div>
-                <div class="flex gap-3">
-                    <div class="flex-1 relative ios-card p-4 text-center overflow-hidden">
-                        <input type="file" accept="image/*" class="absolute inset-0 opacity-0" onchange="processImage(this)">
-                        <div id="imgPreviewContainer" class="hidden"><img id="imgPreview" src="" class="max-h-16 mx-auto rounded shadow-sm"></div>
-                        <div id="uploadPrompt" class="text-stone-400 text-[11px] font-bold"><i data-lucide="camera" class="w-5 h-5 mx-auto mb-1"></i>添加照片</div>
-                    </div>
-                    <button type="submit" id="saveBtn" class="flex-[2] bg-[#435b31] text-white py-4 rounded-2xl font-bold btn-active">儲存紀錄</button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-stone-900 text-white shadow-2xl px-6 py-3 rounded-full text-xs font-bold opacity-0 transition-all z-[200]"></div>
+    <!-- 月會提醒 -->
+    <div class="mb-4">
+        <div class="flex justify-between items-center mb-2 px-1">
+            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide">下次月會</p>
+            <div class="flex gap-2 items-center">
+                <button onclick="resetMeetingDate(event)" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">恢復自動</button>
+                <span id="daysCount" class="badge bg-stone-200 text-stone-600">計算中</span>
+            </div>
+        </div>
+        <label for="meetingPicker" class="card meeting-card p-4 flex justify-between items-center cursor-pointer block">
+            <input type="date" id="meetingPicker" class="hidden-input" onchange="handleManualDate(this.value)">
+            <div>
+                <p class="text-xl font-black tracking-tight" id="meetingDateText">--/--</p>
+                <p id="meetingStatus" class="text-[11px] text-stone-400 mt-0.5 italic">點擊卡片手動設定日期</p>
+            </div>
+            <div class="bg-[var(--green-pale)] p-3 rounded-2xl">
+                <i data-lucide="calendar-days" class="w-5 h-5 text-[var(--green)]"></i>
+            </div>
+        </label>
+    </div>
 
-    <script>
-        // 永恆金鑰：確保代碼更新後資料依然能抓到
-        const DB_KEY = 'FIXLOG_MASTER_DATABASE';
-        let records = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        let currentImageData = null;
-        let selectedFactory = '全部';
-        let editModeId = null;
+    <!-- 廠別分析 -->
+    <div class="mb-4">
+        <div class="flex justify-between items-center mb-2 px-1">
+            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide">廠別分析</p>
+            <div class="flex gap-1">
+                <button onclick="setStatMonth(-1)" class="month-btn">◀</button>
+                <span id="statMonthLabel" class="month-btn cursor-default"></span>
+                <button onclick="setStatMonth(1)" class="month-btn">▶</button>
+            </div>
+        </div>
+        <div class="card p-5">
+            <div id="factoryChart" class="space-y-3"></div>
+            <div id="factoryEmpty" class="empty-state hidden">
+                <i data-lucide="bar-chart-2" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                <p class="text-sm">此月份尚無查修紀錄</p>
+            </div>
+        </div>
+    </div>
 
-        // 1. 匯出功能
-        function exportData() {
-            if (records.length === 0) {
-                showToast("❌ 目前沒有紀錄可匯出");
-                return;
-            }
-            const dataStr = JSON.stringify(records, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            const date = new Date().toISOString().slice(0, 10);
-            link.href = url;
-            link.download = `FixLog_Backup_${date}.json`;
-            link.click();
-            showToast("💾 備份檔案已下載");
-        }
+    <!-- 近7日趨勢 -->
+    <div class="mb-4">
+        <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide mb-2 px-1">近 7 日趨勢</p>
+        <div class="card p-5">
+            <div id="weekTrendChart" class="flex items-end gap-1.5 h-20"></div>
+            <div id="weekTrendLabels" class="flex gap-1.5 mt-2"></div>
+        </div>
+    </div>
 
-        // 2. 匯入功能
-        function importData(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        if (confirm(`確定要匯入 ${imported.length} 筆紀錄嗎？這將會覆蓋目前的資料！`)) {
-                            records = imported;
-                            localStorage.setItem(DB_KEY, JSON.stringify(records));
-                            renderRecords();
-                            showToast("✅ 資料還原成功");
-                        }
-                    } else {
-                        throw new Error();
-                    }
-                } catch (err) {
-                    showToast("❌ 錯誤的備份檔案格式");
-                }
-            };
-            reader.readAsText(file);
-            input.value = ''; // 清除 input 讓下次可選同個檔案
-        }
+    <!-- 備份 -->
+    <div class="mb-4">
+        <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide mb-2 px-1">資料管理</p>
+        <div class="bg-stone-800 rounded-[20px] p-5 text-white">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-amber-500 rounded-lg">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold">資料備份中心</p>
+                    <p class="text-[10px] text-stone-400">建議每月備份一次</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="exportData()" class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95">
+                    <i data-lucide="download" class="w-4 h-4"></i> 匯出備份
+                </button>
+                <button type="button" onclick="openImportModal()" class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95">
+                    <i data-lucide="upload" class="w-4 h-4"></i> 匯入還原
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function updateMeeting() {
-            const now = new Date(); now.setHours(0,0,0,0);
-            let target;
-            const manualDate = localStorage.getItem('fixlog_manual_meeting');
-            const resetBtn = document.getElementById('resetMeetingBtn');
-            if (manualDate) {
-                target = new Date(manualDate);
-                resetBtn.classList.remove('hidden');
-                document.getElementById('meetingStatus').innerText = "📍 目前為手動設定日期";
-            } else {
-                const currentDay = now.getDay();
-                const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
-                target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
-                resetBtn.classList.add('hidden');
-                document.getElementById('meetingStatus').innerText = "✨ 自動計算：本週五開會";
-            }
-            document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
-            const diff = Math.ceil((target - now) / 86400000);
-            const dc = document.getElementById('daysCount');
-            if (diff === 0) { dc.innerText = "今天"; dc.className = "text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full"; }
-            else if (diff < 0) { dc.innerText = `已過 ${Math.abs(diff)} 天`; dc.className = "text-[10px] font-bold bg-stone-100 text-stone-400 px-2 py-0.5 rounded-full"; }
-            else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "text-[10px] font-bold bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full"; }
-        }
+<!-- ══ PAGE: 紀錄 ══ -->
+<div id="page-records" class="page">
+    <!-- 搜尋 -->
+    <div class="relative mb-4">
+        <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400 pointer-events-none"></i>
+        <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄、廠別、機型..."
+            class="w-full bg-white border border-[var(--border)] px-10 py-3 rounded-2xl text-sm focus:ring-2 focus:ring-[var(--green)]/20 focus:border-[var(--green)]/40 outline-none shadow-sm transition-all">
+        <span id="searchCount" class="absolute right-4 top-3 text-[10px] font-bold text-stone-400"></span>
+    </div>
+    <!-- 廠別篩選 -->
+    <div id="factoryFilterRow" class="flex gap-2 mb-4 overflow-x-auto no-scrollbar py-0.5"></div>
+    <!-- 列表 -->
+    <div id="recordList"></div>
+</div>
+```
 
-        function handleManualDate(val) {
-            if(!val) return;
-            localStorage.setItem('fixlog_manual_meeting', val);
-            updateMeeting();
-            showToast("📅 月會日期已更新");
-        }
+</main>
 
-        function resetMeetingDate(e) {
-            if(e) e.stopPropagation(); 
-            localStorage.removeItem('fixlog_manual_meeting');
-            updateMeeting();
-            showToast("🔄 已恢復自動計算");
-        }
+<!-- ─── Bottom Tab Bar ─── -->
 
-        function openFormForAdd() {
-            editModeId = null; document.querySelector('form').reset();
-            document.getElementById('formTitle').innerText = "新增紀錄";
-            document.getElementById('saveBtn').innerText = "儲存紀錄";
-            currentImageData = null; document.getElementById('imgPreviewContainer').classList.add('hidden');
-            document.getElementById('uploadPrompt').classList.remove('hidden');
-            const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
-            document.getElementById('f_datetime').value = n.toISOString().slice(0, 16);
-            document.getElementById('repairForm').classList.remove('hidden');
-        }
+<div class="tab-bar fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center px-8 pt-2 pb-6">
+    <button class="tab-btn active flex flex-col items-center gap-0.5 relative w-16" onclick="switchPage('dash', this)">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold">總覽</span>
+        <div class="tab-indicator"></div>
+    </button>
 
-        function openFormForEdit(id, event) {
-            if(event) event.stopPropagation();
-            const r = records.find(x => x.id === id); if (!r) return;
-            editModeId = id;
-            document.getElementById('formTitle').innerText = "編輯紀錄";
-            document.getElementById('saveBtn').innerText = "更新紀錄";
-            document.getElementById('f_factory').value = r.factory;
-            document.getElementById('f_datetime').value = r.datetime.replace(' ', 'T');
-            document.getElementById('f_model').value = r.model;
-            document.getElementById('f_sn').value = r.sn === '-' ? '' : r.sn;
-            document.getElementById('f_item').value = r.item;
-            document.getElementById('f_content').value = r.content;
-            if (r.image) {
-                currentImageData = r.image; document.getElementById('imgPreview').src = r.image;
-                document.getElementById('imgPreviewContainer').classList.remove('hidden');
-                document.getElementById('uploadPrompt').classList.add('hidden');
-            }
-            document.getElementById('repairForm').classList.remove('hidden');
-        }
+```
+<!-- 中間大型新增按鈕 -->
+<div class="flex flex-col items-center -mt-6">
+    <button onclick="openFormForAdd()" class="add-fab w-16 h-16 rounded-full flex items-center justify-center shadow-xl btn-press">
+        <i data-lucide="plus" class="w-7 h-7 text-white"></i>
+    </button>
+    <span class="text-[10px] font-bold text-[var(--green)] mt-1">新增</span>
+</div>
 
-        function closeForm() { document.getElementById('repairForm').classList.add('hidden'); }
+<button class="tab-btn flex flex-col items-center gap-0.5 relative w-16" onclick="switchPage('records', this)">
+    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+    <span class="text-[10px] font-bold">紀錄</span>
+    <div class="tab-indicator" style="opacity:0"></div>
+</button>
+```
 
-        function processImage(input) {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height, max = 800;
-                    if (w > h && w > max) { h *= max / w; w = max; }
-                    else if (h > max) { w *= max / h; h = max; }
-                    canvas.width = w; canvas.height = h;
-                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
-                    currentImageData = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('imgPreview').src = currentImageData;
-                    document.getElementById('imgPreviewContainer').classList.remove('hidden');
-                    document.getElementById('uploadPrompt').classList.add('hidden');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+</div>
 
-        function saveRecord(e) {
-            e.preventDefault();
-            const d = {
-                factory: document.getElementById('f_factory').value.trim(),
-                datetime: document.getElementById('f_datetime').value.replace('T', ' '),
-                model: document.getElementById('f_model').value.trim(),
-                sn: document.getElementById('f_sn').value.trim() || '-',
-                item: document.getElementById('f_item').value.trim() || '未分類',
-                content: document.getElementById('f_content').value.trim(),
-                image: currentImageData
-            };
-            if (editModeId) {
-                const i = records.findIndex(x => x.id === editModeId);
-                records[i] = { ...records[i], ...d };
-                showToast("✅ 紀錄已更新");
-            } else {
-                records.unshift({ id: "ID" + Date.now(), ...d });
-                showToast("✅ 紀錄已儲存");
-            }
-            localStorage.setItem(DB_KEY, JSON.stringify(records));
-            closeForm(); renderRecords();
-        }
+<!-- ─── Form Sheet ─── -->
 
-        function deleteRecord(id, event) {
-            event.stopPropagation();
-            if(confirm('確定刪除？')) {
-                records = records.filter(r => r.id !== id);
-                localStorage.setItem(DB_KEY, JSON.stringify(records));
-                renderRecords(); showToast("🗑 紀錄已移除");
-            }
-        }
-
-        function copyRecord(id, event) {
-            event.stopPropagation();
-            const r = records.find(x => x.id === id);
-            const text = `【FixLog 維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model}\n項目：${r.item}\n內容：${r.content}`;
-            navigator.clipboard.writeText(text).then(() => showToast("📋 已複製到剪貼簿"));
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.opacity = '1'; t.style.top = '60px';
-            setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2000);
-        }
-
-        function renderRecords() {
-            const s = document.getElementById('searchInput').value.toLowerCase();
-            const list = document.getElementById('recordList');
-            const fr = document.getElementById('factoryFilterRow');
-            const facs = ['全部', ...new Set(records.map(r => r.factory))];
-            fr.innerHTML = facs.map(f => `
-                <button onclick="setFilter('${f}')" class="whitespace-nowrap px-4 py-1.5 rounded-full font-bold text-xs transition-all ${selectedFactory === f ? 'bg-[#435b31] text-white' : 'bg-white text-stone-400 border border-stone-100'}">${f}</button>
-            `).join('');
-            const res = records.filter(r => {
-                const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s);
-                return m && (selectedFactory === '全部' || r.factory === selectedFactory);
-            });
-            list.innerHTML = res.map(r => `
-                <div class="ios-card overflow-hidden mb-3" onclick="this.classList.toggle('is-open')">
-                    <div class="p-5">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-bold text-stone-400">${r.factory} · ${r.datetime}</span>
-                            <div class="flex gap-4">
-                                <button onclick="openFormForEdit('${r.id}', event)" class="p-1"><i data-lucide="pencil" class="w-4 h-4 text-stone-300"></i></button>
-                                <button onclick="copyRecord('${r.id}', event)" class="p-1"><i data-lucide="copy" class="w-5 h-5 text-blue-500"></i></button>
-                                <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300"></i>
-                            </div>
-                        </div>
-                        <h3 class="font-bold text-stone-900">${r.model} <span class="text-xs text-stone-400 font-normal">#${r.sn}</span></h3>
-                        <p class="text-[11px] font-bold text-[#435b31] mt-0.5">${r.item}</p>
-                        <div class="collapse-content"><div class="inner-content">
-                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600 leading-relaxed border border-stone-100">${r.content}</div>
-                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-xl shadow-sm">` : ''}
-                            <div class="flex justify-end mt-4"><button onclick="deleteRecord('${r.id}', event)" class="text-xs font-bold text-red-400">刪除紀錄</button></div>
-                        </div></div>
+<div id="repairForm" class="hidden fixed inset-0 z-[100] form-overlay flex items-end">
+    <div class="form-sheet w-full max-h-[96vh] overflow-y-auto p-5 animate-in">
+        <div class="w-10 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
+        <div class="flex justify-between items-center mb-5">
+            <h2 id="formTitle" class="text-xl font-black">新增紀錄</h2>
+            <button onclick="closeForm()" class="text-blue-600 font-semibold">取消</button>
+        </div>
+        <form onsubmit="saveRecord(event)" class="space-y-3">
+            <!-- 基本資訊 -->
+            <div class="card p-0 overflow-hidden">
+                <div class="form-field-row">
+                    <span class="form-field-label">廠別</span>
+                    <input type="text" id="f_factory" class="form-field-input" placeholder="輸入廠別名稱" required list="factory-list">
+                    <datalist id="factory-list"></datalist>
+                </div>
+                <div class="form-field-row">
+                    <span class="form-field-label">時間</span>
+                    <input type="datetime-local" id="f_datetime" class="form-field-input">
+                </div>
+                <div class="form-field-row">
+                    <span class="form-field-label">機型</span>
+                    <input type="text" id="f_model" class="form-field-input" placeholder="設備機型" required>
+                </div>
+                <div class="form-field-row">
+                    <span class="form-field-label">機號</span>
+                    <input type="text" id="f_sn" class="form-field-input" placeholder="序號（選填）">
+                </div>
+            </div>
+            <!-- 內容 -->
+            <div class="card p-4">
+                <input type="text" id="f_item" placeholder="維修項目（標題）" class="w-full bg-transparent text-sm font-bold outline-none mb-3 border-b border-stone-100 pb-3 text-stone-800 placeholder-stone-300">
+                <textarea id="f_content" rows="5" placeholder="描述處理細節、故障原因、使用零件..." class="w-full bg-transparent text-sm outline-none text-stone-700 placeholder-stone-300 resize-none" required></textarea>
+            </div>
+            <!-- 照片 + 送出 -->
+            <div class="flex gap-3">
+                <div class="flex-1 relative card p-4 text-center cursor-pointer">
+                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processImage(this)">
+                    <div id="imgPreviewContainer" class="hidden">
+                        <img id="imgPreview" src="" class="max-h-14 mx-auto rounded-lg shadow">
+                        <p class="text-[10px] text-stone-400 mt-1">點擊更換</p>
+                    </div>
+                    <div id="uploadPrompt" class="text-stone-400 text-[11px] font-bold">
+                        <i data-lucide="camera" class="w-5 h-5 mx-auto mb-1 text-stone-300"></i>
+                        添加照片
                     </div>
                 </div>
-            `).join('');
-            lucide.createIcons();
-        }
+                <button type="submit" id="saveBtn" class="flex-[2.5] bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm shadow-md btn-press">
+                    儲存紀錄
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        function setFilter(f) { selectedFactory = f; renderRecords(); }
-        updateMeeting(); renderRecords(); lucide.createIcons();
-    </script>
+<!-- ─── Toast ─── -->
+
+<div id="toast" class="fixed top-14 left-1/2 bg-stone-900 text-white shadow-2xl px-5 py-2.5 rounded-full text-xs font-bold opacity-0 z-[200] pointer-events-none"></div>
+
+<!-- ─── Export Modal ─── -->
+
+<div id="exportModal" class="hidden fixed inset-0 z-[150] form-overlay flex items-end">
+    <div class="form-sheet w-full p-5 animate-in">
+        <div class="w-10 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
+        <h2 class="text-xl font-black mb-1">匯出備份</h2>
+        <p id="exportDesc" class="text-xs text-stone-400 mb-4"></p>
+        <div id="exportDesktopArea">
+            <button onclick="doFileDownload()" class="w-full bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm mb-3 btn-press flex items-center justify-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i> 下載 JSON 檔案
+            </button>
+        </div>
+        <div id="exportIosArea" class="hidden">
+            <textarea id="exportJsonText" rows="6" readonly
+                class="w-full bg-stone-100 rounded-2xl p-4 text-[11px] font-mono text-stone-600 outline-none resize-none border border-stone-200 mb-3"
+                onclick="this.select()"></textarea>
+            <button onclick="copyExportJson()" class="w-full bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm mb-3 btn-press flex items-center justify-center gap-2">
+                <i data-lucide="copy" class="w-4 h-4"></i> 複製全部 JSON
+            </button>
+            <p class="text-[10px] text-stone-400 text-center leading-relaxed">複製後貼到備忘錄或 iCloud 文件儲存。<br>還原時使用「貼上 JSON」模式。</p>
+        </div>
+        <button onclick="closeExportModal()" class="w-full mt-3 py-3 rounded-2xl font-bold text-sm text-stone-500">關閉</button>
+    </div>
+</div>
+
+<!-- ─── Import Modal ─── -->
+
+<div id="importModal" class="hidden fixed inset-0 z-[150] form-overlay flex items-end">
+    <div class="form-sheet w-full p-5 animate-in">
+        <div class="w-10 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
+        <h2 class="text-xl font-black mb-1">匯入還原</h2>
+        <p class="text-xs text-stone-400 mb-4">⚠️ 匯入將覆蓋目前所有資料，請先備份！</p>
+        <div class="flex bg-stone-100 rounded-2xl p-1 mb-4">
+            <button onclick="switchImportTab('file')" id="importTabFile" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700">📂 選擇檔案</button>
+            <button onclick="switchImportTab('paste')" id="importTabPaste" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400">📋 貼上 JSON</button>
+        </div>
+        <div id="importFileTab">
+            <label class="w-full border-2 border-dashed border-stone-200 rounded-2xl py-8 flex flex-col items-center gap-2 cursor-pointer hover:border-[var(--green)] hover:bg-[var(--green-pale)] transition-all block">
+                <i data-lucide="file-json" class="w-8 h-8 text-stone-300"></i>
+                <span class="text-sm font-bold text-stone-500">點擊選擇備份檔案</span>
+                <span class="text-[10px] text-stone-400">支援 .json 格式</span>
+                <input type="file" class="hidden" accept=".json,.txt" onchange="importFromFile(this)">
+            </label>
+        </div>
+        <div id="importPasteTab" class="hidden">
+            <textarea id="importPasteText" rows="7" placeholder="將備份的 JSON 文字貼在這裡..."
+                class="w-full bg-stone-100 rounded-2xl p-4 text-[11px] font-mono text-stone-700 outline-none resize-none border border-stone-200 mb-3 focus:border-[var(--green)] focus:bg-white transition-all"></textarea>
+            <button onclick="importFromPaste()" class="w-full bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm btn-press flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> 確認還原
+            </button>
+        </div>
+        <button onclick="closeImportModal()" class="w-full mt-3 py-3 rounded-2xl font-bold text-sm text-stone-500">取消</button>
+    </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────
+// Core Data — 永恆金鑰（升級不遺失資料）
+// 讀取順序：新 key → 舊 key v2 → 原始 key，並自動統一寫入新 key
+// ────────────────────────────────────────────
+const DB_KEY      = 'FIXLOG_MASTER_DATABASE';   // 統一使用此 key
+const LEGACY_KEYS = [
+    'FIXLOG_MASTER_DATABASE',   // v3（同名，保險起見列入）
+    'fixlog_records',           // 可能的舊版 key
+    'fixlog-data',
+    'FL_RECORDS'
+];
+
+function loadRecordsFromStorage() {
+    // 嘗試每個 key，找到第一個有資料的
+    for (const key of LEGACY_KEYS) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    // 統一寫回主 key
+                    localStorage.setItem(DB_KEY, raw);
+                    return parsed;
+                }
+            }
+        } catch(e) {}
+    }
+    return [];
+}
+
+let records = loadRecordsFromStorage();
+let currentImageData = null;
+let selectedFactory = '全部';
+let editModeId = null;
+let statYear = new Date().getFullYear();
+let statMonth = new Date().getMonth();
+
+// ────────────────────────────────────────────
+// Tab Navigation
+// ────────────────────────────────────────────
+const pageTitles = { dash: '查修日誌', records: '維修紀錄' };
+function switchPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.querySelector('.tab-indicator').style.opacity = '0';
+    });
+    document.getElementById('page-' + name).classList.add('active');
+    btn.classList.add('active');
+    btn.querySelector('.tab-indicator').style.opacity = '1';
+    document.getElementById('navTitle').innerText = pageTitles[name];
+    if (name === 'records') renderRecords();
+    if (name === 'dash') renderDashboard();
+}
+
+// ────────────────────────────────────────────
+// Dashboard
+// ────────────────────────────────────────────
+function setStatMonth(delta) {
+    statMonth += delta;
+    if (statMonth > 11) { statMonth = 0; statYear++; }
+    if (statMonth < 0) { statMonth = 11; statYear--; }
+    renderDashboard();
+}
+
+function renderDashboard() {
+    const now = new Date();
+    const thisM = now.getMonth(), thisY = now.getFullYear();
+    const lastM = thisM === 0 ? 11 : thisM - 1;
+    const lastY = thisM === 0 ? thisY - 1 : thisY;
+
+    // Hero numbers
+    const monthRecs = records.filter(r => {
+        const d = new Date(r.datetime);
+        return d.getMonth() === thisM && d.getFullYear() === thisY;
+    });
+    const lastMonthRecs = records.filter(r => {
+        const d = new Date(r.datetime);
+        return d.getMonth() === lastM && d.getFullYear() === lastY;
+    });
+    const weekAgo = new Date(now - 7 * 86400000);
+    const weekRecs = records.filter(r => new Date(r.datetime) >= weekAgo);
+    const factories = new Set(records.map(r => r.factory));
+
+    animateNum('heroMonthCount', monthRecs.length);
+    animateNum('heroTotal', records.length);
+    animateNum('heroFactories', factories.size);
+    animateNum('heroWeek', weekRecs.length);
+
+    const mm = document.getElementById('heroMonthLabel');
+    mm.innerText = `${thisY}年${thisM+1}月`;
+    const mom = document.getElementById('heroMoM');
+    if (lastMonthRecs.length === 0) {
+        mom.innerText = '—';
+    } else {
+        const pct = Math.round((monthRecs.length - lastMonthRecs.length) / lastMonthRecs.length * 100);
+        mom.innerText = (pct >= 0 ? '+' : '') + pct + '%';
+        mom.style.color = pct >= 0 ? '#a3c97c' : '#f87171';
+    }
+
+    // Stat month label
+    document.getElementById('statMonthLabel').innerText = `${statYear}年${statMonth+1}月`;
+
+    // Factory chart for statMonth
+    const statRecs = records.filter(r => {
+        const d = new Date(r.datetime);
+        return d.getMonth() === statMonth && d.getFullYear() === statYear;
+    });
+    const factChart = document.getElementById('factoryChart');
+    const factEmpty = document.getElementById('factoryEmpty');
+    if (statRecs.length === 0) {
+        factChart.classList.add('hidden');
+        factEmpty.classList.remove('hidden');
+    } else {
+        factChart.classList.remove('hidden');
+        factEmpty.classList.add('hidden');
+        const counts = {};
+        statRecs.forEach(r => { counts[r.factory] = (counts[r.factory] || 0) + 1; });
+        const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+        const max = sorted[0][1];
+        const colors = ['#3a5129','#4e6e36','#6b8f4a','#8fb366','#b5d68f','#d4e8b8'];
+        factChart.innerHTML = sorted.map(([fac, cnt], i) => `
+            <div class="flex items-center gap-3">
+                <div class="w-16 text-[11px] font-bold text-stone-600 text-right flex-shrink-0 truncate">${fac}</div>
+                <div class="flex-1 bar-wrap">
+                    <div class="bar-fill" data-width="${cnt/max*100}" style="background:${colors[i%colors.length]}; width:0"></div>
+                </div>
+                <div class="stat-num text-sm font-bold text-stone-700 w-6 text-right">${cnt}</div>
+            </div>
+        `).join('');
+        // Animate bars
+        requestAnimationFrame(() => {
+            factChart.querySelectorAll('.bar-fill').forEach(el => {
+                el.style.width = el.dataset.width + '%';
+            });
+        });
+    }
+
+    // Week trend
+    const trendWrap = document.getElementById('weekTrendChart');
+    const trendLabels = document.getElementById('weekTrendLabels');
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        d.setHours(0,0,0,0);
+        const next = new Date(d); next.setDate(next.getDate()+1);
+        const cnt = records.filter(r => { const rd = new Date(r.datetime); return rd >= d && rd < next; }).length;
+        const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+        days.push({ cnt, label: wd, isToday: i === 0 });
+    }
+    const maxDay = Math.max(...days.map(d => d.cnt), 1);
+    const barColors = days.map(d => d.isToday ? 'var(--green)' : '#dde8d5');
+    trendWrap.innerHTML = days.map((d,i) => `
+        <div class="flex-1 flex flex-col items-center justify-end gap-1">
+            <span class="stat-num text-[10px] font-bold ${d.cnt > 0 ? 'text-stone-600' : 'text-transparent'}">${d.cnt || ''}</span>
+            <div class="w-full rounded-t-lg transition-all duration-700" style="height:${Math.max(d.cnt/maxDay*56,4)}px; background:${barColors[i]}"></div>
+        </div>
+    `).join('');
+    trendLabels.innerHTML = days.map((d,i) => `
+        <div class="flex-1 text-center text-[10px] font-bold ${d.isToday ? 'text-[var(--green)]' : 'text-stone-400'}">${d.label}</div>
+    `).join('');
+
+    lucide.createIcons();
+}
+
+function animateNum(id, target) {
+    const el = document.getElementById(id);
+    const start = parseInt(el.innerText) || 0;
+    const dur = 600;
+    const startTime = performance.now();
+    function step(t) {
+        const progress = Math.min((t - startTime) / dur, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        el.innerText = Math.round(start + (target - start) * ease);
+        if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+// ────────────────────────────────────────────
+// Meeting Reminder
+// ────────────────────────────────────────────
+function updateMeeting() {
+    const now = new Date(); now.setHours(0,0,0,0);
+    let target;
+    const manualDate = localStorage.getItem('fixlog_manual_meeting');
+    const resetBtn = document.getElementById('resetMeetingBtn');
+    if (manualDate) {
+        target = new Date(manualDate);
+        resetBtn.classList.remove('hidden');
+        document.getElementById('meetingStatus').innerText = "📍 目前為手動設定日期";
+    } else {
+        const currentDay = now.getDay();
+        const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
+        target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
+        resetBtn.classList.add('hidden');
+        document.getElementById('meetingStatus').innerText = "✨ 自動計算：本週五開會";
+    }
+    document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
+    const diff = Math.ceil((target - now) / 86400000);
+    const dc = document.getElementById('daysCount');
+    if (diff === 0) { dc.innerText = "今天"; dc.className = "badge bg-red-100 text-red-600"; }
+    else if (diff < 0) { dc.innerText = `已過 ${Math.abs(diff)} 天`; dc.className = "badge bg-stone-100 text-stone-400"; }
+    else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "badge bg-[var(--green-pale)] text-[var(--green)]"; }
+}
+function handleManualDate(val) {
+    if (!val) return;
+    localStorage.setItem('fixlog_manual_meeting', val);
+    updateMeeting(); showToast("📅 月會日期已更新");
+}
+function resetMeetingDate(e) {
+    if (e) e.stopPropagation();
+    localStorage.removeItem('fixlog_manual_meeting');
+    updateMeeting(); showToast("🔄 已恢復自動計算");
+}
+
+// ────────────────────────────────────────────
+// Records Page
+// ────────────────────────────────────────────
+function renderRecords() {
+    const s = document.getElementById('searchInput').value.toLowerCase();
+    const list = document.getElementById('recordList');
+    const fr = document.getElementById('factoryFilterRow');
+    const facs = ['全部', ...new Set(records.map(r => r.factory))];
+    fr.innerHTML = facs.map(f => `
+        <button onclick="setFilter('${f}')" class="pill ${selectedFactory === f ? 'on' : 'off'}">${f}</button>
+    `).join('');
+    const res = records.filter(r => {
+        const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s) || r.item.toLowerCase().includes(s);
+        return m && (selectedFactory === '全部' || r.factory === selectedFactory);
+    });
+    const sc = document.getElementById('searchCount');
+    sc.innerText = s || selectedFactory !== '全部' ? `${res.length} 筆` : '';
+    if (res.length === 0) {
+        list.innerHTML = `<div class="empty-state">
+            <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+            <p class="text-sm font-medium">找不到符合的紀錄</p>
+            <p class="text-xs mt-1 opacity-60">試試其他關鍵字</p>
+        </div>`;
+    } else {
+        list.innerHTML = res.map((r, idx) => `
+            <div class="card mb-3 animate-in" data-card-id="${r.id}" style="animation-delay:${idx * 0.04}s">
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-start gap-2 flex-1 min-w-0">
+                            <div class="record-dot mt-1.5"></div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[10px] font-black text-[var(--green)] bg-[var(--green-pale)] px-2 py-0.5 rounded-full">${r.factory}</span>
+                                    <span class="text-[10px] text-stone-400 font-mono">${r.datetime}</span>
+                                </div>
+                                <h3 class="font-black text-[15px] text-stone-900 mt-1 leading-tight">${r.model} <span class="text-xs text-stone-400 font-normal">#${r.sn}</span></h3>
+                                <p class="text-[11px] font-bold text-stone-500 mt-0.5">${r.item}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 items-center ml-2 flex-shrink-0">
+                            <button data-action="edit" data-id="${r.id}"
+                                class="flex items-center gap-1.5 bg-stone-100 active:bg-stone-200 active:scale-95 px-3 py-1.5 rounded-xl transition-all">
+                                <i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-500 pointer-events-none"></i>
+                                <span class="text-[11px] font-bold text-stone-500 pointer-events-none">編輯</span>
+                            </button>
+                            <button data-action="copy" data-id="${r.id}"
+                                class="flex items-center gap-1.5 bg-blue-50 active:bg-blue-100 active:scale-95 px-3 py-1.5 rounded-xl transition-all">
+                                <i data-lucide="copy" class="w-3.5 h-3.5 text-blue-500 pointer-events-none"></i>
+                                <span class="text-[11px] font-bold text-blue-500 pointer-events-none">複製</span>
+                            </button>
+                            <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    <div class="collapse-content">
+                        <div class="inner-content">
+                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600 leading-relaxed border border-stone-100 mt-1">${r.content.replace(/\n/g,'<br>')}</div>
+                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-2xl shadow-sm object-cover max-h-48">` : ''}
+                            <div class="flex justify-end mt-3 pt-2 border-t border-stone-100">
+                                <button data-action="delete" data-id="${r.id}"
+                                    class="flex items-center gap-1.5 bg-red-50 active:bg-red-100 active:scale-95 px-4 py-2 rounded-xl transition-all">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500 pointer-events-none"></i>
+                                    <span class="text-xs font-bold text-red-500 pointer-events-none">刪除紀錄</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    lucide.createIcons();
+}
+
+function setFilter(f) { selectedFactory = f; renderRecords(); }
+
+// ── 事件委派：掛在 recordList 容器，處理所有卡片互動 ──
+document.getElementById('recordList').addEventListener('click', function(e) {
+    const actionBtn = e.target.closest('[data-action]');
+    const card = e.target.closest('[data-card-id]');
+    if (!card) return;
+
+    if (actionBtn) {
+        e.stopPropagation();
+        const action = actionBtn.dataset.action;
+        const id = actionBtn.dataset.id;
+        if (action === 'edit')   openFormForEdit(id);
+        if (action === 'copy')   copyRecord(id);
+        if (action === 'delete') deleteRecord(id);
+    } else {
+        card.classList.toggle('is-open');
+    }
+});
+
+// ────────────────────────────────────────────
+// Form
+// ────────────────────────────────────────────
+function openFormForAdd() {
+    editModeId = null;
+    document.querySelector('form').reset();
+    document.getElementById('formTitle').innerText = "新增紀錄";
+    document.getElementById('saveBtn').innerText = "儲存紀錄";
+    currentImageData = null;
+    document.getElementById('imgPreviewContainer').classList.add('hidden');
+    document.getElementById('uploadPrompt').classList.remove('hidden');
+    const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
+    document.getElementById('f_datetime').value = n.toISOString().slice(0, 16);
+    // Populate factory datalist
+    const dl = document.getElementById('factory-list');
+    dl.innerHTML = [...new Set(records.map(r => r.factory))].map(f => `<option value="${f}">`).join('');
+    document.getElementById('repairForm').classList.remove('hidden');
+}
+function openFormForEdit(id) {
+    const r = records.find(x => x.id === id); if (!r) return;
+    editModeId = id;
+    document.getElementById('formTitle').innerText = "編輯紀錄";
+    document.getElementById('saveBtn').innerText = "更新紀錄";
+    document.getElementById('f_factory').value = r.factory;
+    document.getElementById('f_datetime').value = r.datetime.replace(' ', 'T');
+    document.getElementById('f_model').value = r.model;
+    document.getElementById('f_sn').value = r.sn === '-' ? '' : r.sn;
+    document.getElementById('f_item').value = r.item;
+    document.getElementById('f_content').value = r.content;
+    if (r.image) {
+        currentImageData = r.image;
+        document.getElementById('imgPreview').src = r.image;
+        document.getElementById('imgPreviewContainer').classList.remove('hidden');
+        document.getElementById('uploadPrompt').classList.add('hidden');
+    } else {
+        currentImageData = null;
+        document.getElementById('imgPreviewContainer').classList.add('hidden');
+        document.getElementById('uploadPrompt').classList.remove('hidden');
+    }
+    document.getElementById('repairForm').classList.remove('hidden');
+}
+function closeForm() { document.getElementById('repairForm').classList.add('hidden'); }
+
+function processImage(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height, max = 900;
+            if (w > h && w > max) { h *= max/w; w = max; }
+            else if (h > max) { w *= max/h; h = max; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            currentImageData = canvas.toDataURL('image/jpeg', 0.7);
+            document.getElementById('imgPreview').src = currentImageData;
+            document.getElementById('imgPreviewContainer').classList.remove('hidden');
+            document.getElementById('uploadPrompt').classList.add('hidden');
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveRecord(e) {
+    e.preventDefault();
+    const d = {
+        factory: document.getElementById('f_factory').value.trim(),
+        datetime: document.getElementById('f_datetime').value.replace('T', ' '),
+        model: document.getElementById('f_model').value.trim(),
+        sn: document.getElementById('f_sn').value.trim() || '-',
+        item: document.getElementById('f_item').value.trim() || '未分類',
+        content: document.getElementById('f_content').value.trim(),
+        image: currentImageData
+    };
+    if (editModeId) {
+        const i = records.findIndex(x => x.id === editModeId);
+        records[i] = { ...records[i], ...d };
+        showToast("✅ 紀錄已更新");
+    } else {
+        records.unshift({ id: "ID" + Date.now(), ...d });
+        showToast("✅ 紀錄已儲存");
+    }
+    localStorage.setItem(DB_KEY, JSON.stringify(records));
+    closeForm(); renderDashboard();
+    // Switch to records page briefly if already there
+    if (document.getElementById('page-records').classList.contains('active')) renderRecords();
+}
+
+// ────────────────────────────────────────────
+// CRUD helpers
+// ────────────────────────────────────────────
+function deleteRecord(id) {
+    if (confirm('確定刪除此紀錄？')) {
+        records = records.filter(r => r.id !== id);
+        localStorage.setItem(DB_KEY, JSON.stringify(records));
+        renderRecords(); renderDashboard(); showToast("🗑 紀錄已移除");
+    }
+}
+function copyRecord(id) {
+    const r = records.find(x => x.id === id);
+    const text = `【FixLog 維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model} #${r.sn}\n項目：${r.item}\n內容：${r.content}`;
+    navigator.clipboard.writeText(text).then(() => showToast("📋 已複製到剪貼簿"));
+}
+
+// ────────────────────────────────────────────
+// Import / Export — cross-platform (iOS + Desktop)
+// ────────────────────────────────────────────
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// ── Export ──
+function exportData() {
+    if (records.length === 0) { showToast("❌ 目前沒有紀錄可匯出"); return; }
+    const json = JSON.stringify(records, null, 2);
+    const desc = document.getElementById('exportDesc');
+    const desktop = document.getElementById('exportDesktopArea');
+    const ios = document.getElementById('exportIosArea');
+
+    if (isIOS()) {
+        // iOS: show copyable textarea
+        desc.innerText = `共 ${records.length} 筆紀錄 — 複製後儲存至備忘錄`;
+        desktop.classList.add('hidden');
+        ios.classList.remove('hidden');
+        document.getElementById('exportJsonText').value = json;
+    } else {
+        // Desktop: normal file download
+        desc.innerText = `共 ${records.length} 筆紀錄`;
+        desktop.classList.remove('hidden');
+        ios.classList.add('hidden');
+    }
+    document.getElementById('exportModal').classList.remove('hidden');
+    lucide.createIcons();
+}
+function doFileDownload() {
+    const json = JSON.stringify(records, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `FixLog_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    showToast("💾 備份檔案已下載");
+    closeExportModal();
+}
+function copyExportJson() {
+    const text = document.getElementById('exportJsonText').value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast("📋 JSON 已複製，請貼到備忘錄"));
+    } else {
+        // Fallback: select and execCommand
+        const ta = document.getElementById('exportJsonText');
+        ta.select(); ta.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        showToast("📋 JSON 已複製");
+    }
+}
+function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+}
+
+// ── Import ──
+function openImportModal() {
+    switchImportTab('file');
+    document.getElementById('importPasteText').value = '';
+    document.getElementById('importModal').classList.remove('hidden');
+    lucide.createIcons();
+}
+function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+}
+function switchImportTab(tab) {
+    const fileTab = document.getElementById('importFileTab');
+    const pasteTab = document.getElementById('importPasteTab');
+    const btnFile = document.getElementById('importTabFile');
+    const btnPaste = document.getElementById('importTabPaste');
+    if (tab === 'file') {
+        fileTab.classList.remove('hidden'); pasteTab.classList.add('hidden');
+        btnFile.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700';
+        btnPaste.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400';
+    } else {
+        fileTab.classList.add('hidden'); pasteTab.classList.remove('hidden');
+        btnPaste.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700';
+        btnFile.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400';
+    }
+}
+function importFromFile(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) { processImportJSON(e.target.result); };
+    reader.readAsText(file);
+    input.value = '';
+}
+function importFromPaste() {
+    const text = document.getElementById('importPasteText').value.trim();
+    if (!text) { showToast("❌ 請先貼上 JSON 內容"); return; }
+    processImportJSON(text);
+}
+function processImportJSON(text) {
+    try {
+        const imported = JSON.parse(text);
+        if (!Array.isArray(imported)) throw new Error();
+        if (confirm(`確定要匯入 ${imported.length} 筆紀錄嗎？這將覆蓋目前所有資料！`)) {
+            records = imported;
+            localStorage.setItem(DB_KEY, JSON.stringify(records));
+            renderDashboard(); renderRecords();
+            closeImportModal();
+            showToast("✅ 資料還原成功");
+        }
+    } catch(err) {
+        showToast("❌ 格式錯誤，請確認是正確的備份檔");
+    }
+}
+
+// ────────────────────────────────────────────
+// Toast
+// ────────────────────────────────────────────
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.opacity = '1';
+    t.style.top = '60px';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2200);
+}
+
+// ────────────────────────────────────────────
+// Init
+// ────────────────────────────────────────────
+updateMeeting();
+renderDashboard();
+lucide.createIcons();
+
+// Set initial tab indicator
+document.querySelector('.tab-btn.active .tab-indicator').style.opacity = '1';
+</script>
+
 </body>
 </html>
