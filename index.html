@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FixLog | 專業查修系統</title>
+    <title>FixLog | 查修系統</title>
     <link rel="apple-touch-icon" href="https://img.icons8.com/origami/180/wrench.png">
     <link rel="icon" type="image/png" sizes="192x192" href="https://img.icons8.com/origami/192/wrench.png">
     <meta name="apple-mobile-web-app-title" content="FixLog">
@@ -12,429 +12,379 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #f0f0f5;
-            --card: #ffffff;
-            --green: #3a5129;
-            --green-light: #4e6e36;
-            --green-pale: #eaf2e3;
-            --accent: #d4a853;
-            --text: #111;
-            --sub: #888;
-            --border: rgba(0,0,0,0.06);
-            --shadow: 0 2px 12px rgba(0,0,0,0.07);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
-        }
-        * { box-sizing: border-box; }
-        body {
-            font-family: "Noto Sans TC", -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            -webkit-font-smoothing: antialiased;
-            overscroll-behavior: none;
-        }
-        /* ── Nav ── */
-        .ios-nav {
-            background: rgba(255,255,255,0.88);
-            backdrop-filter: saturate(200%) blur(24px);
-            -webkit-backdrop-filter: saturate(200%) blur(24px);
-            border-bottom: 1px solid var(--border);
-        }
-        /* ── Cards ── */
-        .card {
-            background: var(--card);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .card:active { transform: scale(0.985); }
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 ```
-    /* ── Tab Bar ── */
+<style>
+    :root {
+        --bg:         #f4f2ee;
+        --card:       #ffffff;
+        --green:      #2d3e20;
+        --green-mid:  #3d5429;
+        --green-lt:   #516b36;
+        --green-pale: #edf2e6;
+        --green-line: #c8d9b4;
+        --brass:      #b8893a;
+        --text:       #1a1a1a;
+        --text-mid:   #555;
+        --text-sub:   #999;
+        --border:     rgba(0,0,0,0.07);
+        --sh-sm:      0 1px 4px rgba(0,0,0,0.06);
+        --sh:         0 2px 16px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+        font-family: "Noto Sans TC", -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        overscroll-behavior: none;
+    }
+    .font-display { font-family: "Syne", sans-serif; }
+    .font-mono    { font-family: "JetBrains Mono", monospace; }
+
+    /* Nav */
+    .app-nav {
+        background: rgba(244,242,238,0.94);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* Cards */
+    .card {
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: var(--sh-sm);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+    .card-tap { transition: transform 0.14s ease; }
+    .card-tap:active { transform: scale(0.987); }
+
+    /* Tab bar */
     .tab-bar {
-        background: rgba(255,255,255,0.92);
+        background: rgba(255,255,255,0.96);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border);
     }
     .tab-btn { transition: color 0.2s; }
-    .tab-btn.active { color: var(--green); }
-    .tab-btn:not(.active) { color: #aaa; }
-    .tab-indicator {
-        position: absolute;
-        bottom: 6px;
-        width: 4px; height: 4px;
+    .tab-btn.active      { color: var(--green); }
+    .tab-btn:not(.active){ color: #bbb; }
+    .tab-line {
+        height: 2px; width: 18px;
         background: var(--green);
-        border-radius: 50%;
-        left: 50%;
-        transform: translateX(-50%);
+        border-radius: 1px;
+        margin: 3px auto 0;
         transition: opacity 0.2s;
     }
 
-    /* ── Pages ── */
-    .page { display: none; animation: fadeUp 0.3s ease both; }
-    .page.active { display: block; }
-    @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(12px); }
-        to   { opacity: 1; transform: translateY(0); }
+    /* FAB */
+    .fab {
+        background: var(--green);
+        box-shadow: 0 4px 24px rgba(45,62,32,0.38), 0 1px 6px rgba(0,0,0,0.18);
+        transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
+    .fab:active { transform: scale(0.87); box-shadow: 0 2px 10px rgba(45,62,32,0.28); }
 
-    /* ── Stats ── */
-    .stat-num {
-        font-family: "DM Mono", monospace;
-        font-weight: 500;
-        letter-spacing: -0.04em;
-    }
-    .bar-wrap { background: #f0f0f0; border-radius: 99px; overflow: hidden; height: 8px; }
-    .bar-fill {
-        height: 100%; border-radius: 99px;
-        background: linear-gradient(90deg, var(--green), var(--green-light));
-        transition: width 0.8s cubic-bezier(.22,.68,0,1.2);
-        width: 0;
-    }
+    /* Pages */
+    .page { display: none; }
+    .page.active { display: block; animation: pgIn 0.26s ease both; }
+    @keyframes pgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
-    /* ── Donut Chart ── */
-    .donut-svg { transform: rotate(-90deg); }
-    .donut-seg { transition: stroke-dasharray 0.9s cubic-bezier(.22,.68,0,1.2); }
-
-    /* ── Record cards ── */
-    .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.2s ease; opacity: 0; }
-    .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; padding-top: 12px; }
-    .is-open .arrow-icon { transform: rotate(90deg); }
-    .arrow-icon { transition: transform 0.25s ease; }
-    .inner-content { overflow: hidden; }
-
-    /* ── Pill filters ── */
-    .pill { border-radius: 99px; padding: 6px 16px; font-size: 12px; font-weight: 700; transition: all 0.2s; white-space: nowrap; }
-    .pill.on { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(58,81,41,0.3); }
-    .pill.off { background: #fff; color: #999; border: 1px solid #e5e5e5; }
-
-    /* ── Form overlay ── */
-    .form-overlay { background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); }
-    .form-sheet { border-radius: 28px 28px 0 0; background: var(--bg); }
-    .form-field-row { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
-    .form-field-row:last-child { border-bottom: none; }
-    .form-field-label { width: 72px; font-size: 13px; color: var(--sub); font-weight: 500; flex-shrink: 0; }
-    .form-field-input { flex: 1; background: transparent; font-size: 14px; outline: none; }
-
-    /* ── Misc ── */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
-    .btn-press:active { transform: scale(0.94); opacity: 0.75; }
-    .badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; }
-
-    /* ── Gradient hero ── */
-    .dashboard-hero {
-        background: linear-gradient(135deg, var(--green) 0%, #2c4220 100%);
-        border-radius: 24px;
+    /* Hero */
+    .hero-card {
+        background: var(--green);
+        border-radius: 20px;
         position: relative;
         overflow: hidden;
     }
-    .dashboard-hero::before {
-        content: '';
+    .hero-card::after {
+        content: 'FL';
+        font-family: "Syne", sans-serif;
+        font-weight: 800;
+        font-size: 128px;
+        color: rgba(255,255,255,0.04);
         position: absolute;
-        top: -40px; right: -40px;
-        width: 160px; height: 160px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 50%;
-    }
-    .dashboard-hero::after {
-        content: '';
-        position: absolute;
-        bottom: -60px; right: 20px;
-        width: 120px; height: 120px;
-        background: rgba(255,255,255,0.04);
-        border-radius: 50%;
+        right: -8px; bottom: -24px;
+        line-height: 1;
+        pointer-events: none;
+        letter-spacing: -6px;
     }
 
-    /* ── Trend sparkline ── */
-    .sparkline { height: 32px; }
+    /* Stats */
+    .stat-num { font-family: "JetBrains Mono", monospace; letter-spacing: -0.03em; font-weight: 500; }
 
-    /* ── Meeting card ── */
-    .meeting-card {
-        border-left: 4px solid var(--green);
-    }
-
-    /* ── Record item status dot ── */
-    .record-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: var(--green-pale);
-        border: 2px solid var(--green);
-        flex-shrink: 0;
-        margin-top: 3px;
+    /* Bar */
+    .bar-track { background: #ece9e3; border-radius: 99px; height: 6px; overflow: hidden; }
+    .bar-fill {
+        height: 100%; border-radius: 99px; background: var(--green);
+        transition: width 0.9s cubic-bezier(.22,.68,0,1.2); width: 0;
     }
 
-    /* ── Empty state ── */
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #bbb;
-    }
+    /* Collapse */
+    .collapse-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease, opacity 0.22s ease; opacity:0; }
+    .is-open .collapse-content { grid-template-rows: 1fr; opacity: 1; }
+    .inner-content { overflow: hidden; }
+    .chevron-icon { transition: transform 0.24s ease; }
+    .is-open .chevron-icon { transform: rotate(90deg); }
 
-    /* ── Toast ── */
-    #toast {
-        transition: opacity 0.3s ease, top 0.3s ease, transform 0.3s ease;
-        transform: translateX(-50%);
-    }
+    /* Pills */
+    .pill { border-radius: 99px; padding: 5px 14px; font-size: 11px; font-weight: 700; transition: all 0.18s; white-space: nowrap; }
+    .pill.on  { background: var(--green); color: #fff; }
+    .pill.off { background: #fff; color: var(--text-sub); border: 1px solid #e8e5e0; }
 
-    /* ── Animate in ── */
-    .animate-in {
-        animation: slideIn 0.35s ease both;
-    }
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(16px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
+    /* Form */
+    .form-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
+    .form-sheet   { border-radius: 24px 24px 0 0; background: var(--bg); }
+    .field-row    { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f2efe9; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label  { width: 64px; font-size: 12px; color: var(--text-sub); font-weight: 600; flex-shrink: 0; letter-spacing: 0.02em; }
+    .field-input  { flex:1; background: transparent; font-size: 14px; outline: none; color: var(--text); font-family: "Noto Sans TC", sans-serif; }
 
-    /* ── Month selector ── */
-    .month-btn {
-        background: #f0f0f0;
-        border-radius: 12px;
-        padding: 6px 12px;
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--sub);
-        transition: all 0.2s;
-    }
-    .month-btn:hover { background: var(--green-pale); color: var(--green); }
+    /* Meeting */
+    .meeting-card { border-left: 3px solid var(--green); }
 
-    /* ── FAB Add Button ── */
-    .add-fab {
-        background: linear-gradient(145deg, var(--green-light), var(--green));
-        box-shadow: 0 4px 20px rgba(58,81,41,0.45), 0 2px 8px rgba(0,0,0,0.15);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .add-fab:active {
-        transform: scale(0.9);
-        box-shadow: 0 2px 10px rgba(58,81,41,0.3);
-    }
+    /* Misc */
+    .no-scroll::-webkit-scrollbar { display: none; }
+    .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    .hidden-input { position: absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+    .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+    .btn-tap:active { transform: scale(0.93); opacity: 0.7; }
+
+    /* Section label */
+    .sec-label { font-size: 10px; font-weight: 700; color: var(--text-sub); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* Slide in */
+    .slide-in { animation: sIn 0.28s ease both; }
+    @keyframes sIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Month nav */
+    .mnav { width:28px; height:28px; border-radius:8px; background:#ebe8e2; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-mid); transition:background 0.15s; }
+    .mnav:active { background: var(--green-pale); }
+
+    /* Toast */
+    #toast { transform: translateX(-50%); transition: opacity 0.25s ease, top 0.25s ease; }
+
+    /* Empty */
+    .empty-state { text-align:center; padding:48px 20px; color:var(--text-sub); }
+
+    /* Record action buttons */
+    .rac { display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:10px; font-size:11px; font-weight:700; transition: background 0.14s, transform 0.1s; }
+    .rac:active { transform: scale(0.91); }
+    .rac.edit { background:#f0ede8; color:#555; }
+    .rac.copy { background:#e8f0fb; color:#3b7dd8; }
+    .rac.del  { background:#fdf0f0; color:#d94f4f; }
 </style>
 ```
 
 </head>
-<body class="pb-24">
+<body class="pb-28">
 
-<!-- ─── Nav ─── -->
+<!-- NAV -->
 
-<nav class="ios-nav sticky top-0 z-50 px-5 py-3 flex justify-between items-center">
-    <div class="flex flex-col">
-        <span class="text-[9px] font-black text-stone-400 tracking-widest uppercase">FixLog v3.0</span>
-        <h1 id="navTitle" class="text-[19px] font-black tracking-tight">查修日誌</h1>
+<nav class="app-nav sticky top-0 z-50 px-5 py-3.5 flex justify-between items-center">
+    <div>
+        <span class="sec-label">FixLog v3.1</span>
+        <h1 id="navTitle" class="font-display text-[20px] leading-tight mt-0.5" style="color:var(--green)">查修日誌</h1>
     </div>
-    <div></div>
+    <div id="navRight"></div>
 </nav>
 
-<!-- ─── Main content area ─── -->
+<!-- MAIN -->
 
 <main class="max-w-xl mx-auto px-4 pt-4">
 
 ```
-<!-- ══ PAGE: 儀表板 ══ -->
-<div id="page-dash" class="page active">
+<!-- PAGE: 儀表板 -->
+<div id="page-dash" class="page active space-y-4">
 
-    <!-- Hero Stats -->
-    <div class="dashboard-hero p-5 mb-4 text-white">
-        <div class="flex justify-between items-start mb-4">
+    <!-- Hero -->
+    <div class="hero-card p-5 text-white">
+        <div class="flex justify-between items-start mb-5">
             <div>
-                <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">本月查修</p>
-                <p class="stat-num text-5xl font-black leading-none" id="heroMonthCount">0</p>
-                <p class="text-[11px] opacity-50 mt-1" id="heroMonthLabel">筆紀錄</p>
+                <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-2">本月查修</p>
+                <p class="stat-num font-display text-6xl font-black leading-none" id="heroMonthCount">0</p>
+                <p class="text-[11px] opacity-40 mt-1.5" id="heroMonthLabel">—</p>
             </div>
             <div class="text-right">
-                <p class="text-[10px] opacity-60 mb-1">vs 上月</p>
-                <p class="stat-num text-lg font-bold" id="heroMoM">—</p>
+                <p class="text-[10px] opacity-40 mb-1">vs 上月</p>
+                <p class="stat-num text-base font-bold" id="heroMoM">—</p>
             </div>
         </div>
-        <div class="grid grid-cols-3 gap-3 pt-3 border-t border-white/10">
-            <div>
-                <p class="stat-num text-2xl font-black" id="heroTotal">0</p>
-                <p class="text-[10px] opacity-50 mt-0.5">累計紀錄</p>
+        <div class="grid grid-cols-3 gap-0 pt-4 border-t border-white/10">
+            <div class="pr-4 border-r border-white/10">
+                <p class="stat-num text-[22px] font-bold" id="heroTotal">0</p>
+                <p class="text-[10px] opacity-40 mt-0.5">累計</p>
             </div>
-            <div>
-                <p class="stat-num text-2xl font-black" id="heroFactories">0</p>
-                <p class="text-[10px] opacity-50 mt-0.5">廠別數量</p>
+            <div class="px-4 border-r border-white/10">
+                <p class="stat-num text-[22px] font-bold" id="heroFactories">0</p>
+                <p class="text-[10px] opacity-40 mt-0.5">廠別</p>
             </div>
-            <div>
-                <p class="stat-num text-2xl font-black" id="heroWeek">0</p>
-                <p class="text-[10px] opacity-50 mt-0.5">本週新增</p>
+            <div class="pl-4">
+                <p class="stat-num text-[22px] font-bold" id="heroWeek">0</p>
+                <p class="text-[10px] opacity-40 mt-0.5">本週</p>
             </div>
         </div>
     </div>
 
-    <!-- 月會提醒 -->
-    <div class="mb-4">
+    <!-- 月會 -->
+    <div>
         <div class="flex justify-between items-center mb-2 px-1">
-            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide">下次月會</p>
+            <span class="sec-label">下次月會</span>
             <div class="flex gap-2 items-center">
-                <button onclick="resetMeetingDate(event)" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">恢復自動</button>
-                <span id="daysCount" class="badge bg-stone-200 text-stone-600">計算中</span>
+                <button onclick="resetMeetingDate(event)" id="resetMeetingBtn" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 px-2.5 py-0.5 rounded-full">恢復自動</button>
+                <span id="daysCount" class="badge bg-stone-200 text-stone-500">—</span>
             </div>
         </div>
-        <label for="meetingPicker" class="card meeting-card p-4 flex justify-between items-center cursor-pointer block">
+        <label for="meetingPicker" class="card card-tap meeting-card p-4 flex justify-between items-center cursor-pointer block">
             <input type="date" id="meetingPicker" class="hidden-input" onchange="handleManualDate(this.value)">
             <div>
-                <p class="text-xl font-black tracking-tight" id="meetingDateText">--/--</p>
-                <p id="meetingStatus" class="text-[11px] text-stone-400 mt-0.5 italic">點擊卡片手動設定日期</p>
+                <p class="font-display text-[20px] font-bold leading-tight" id="meetingDateText" style="color:var(--green)">--/--</p>
+                <p id="meetingStatus" class="text-[11px] text-stone-400 mt-0.5">點擊卡片手動設定日期</p>
             </div>
-            <div class="bg-[var(--green-pale)] p-3 rounded-2xl">
-                <i data-lucide="calendar-days" class="w-5 h-5 text-[var(--green)]"></i>
+            <div class="p-2.5 rounded-xl" style="background:var(--green-pale)">
+                <i data-lucide="calendar-days" class="w-5 h-5" style="color:var(--green)"></i>
             </div>
         </label>
     </div>
 
     <!-- 廠別分析 -->
-    <div class="mb-4">
+    <div>
         <div class="flex justify-between items-center mb-2 px-1">
-            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide">廠別分析</p>
-            <div class="flex gap-1">
-                <button onclick="setStatMonth(-1)" class="month-btn">◀</button>
-                <span id="statMonthLabel" class="month-btn cursor-default"></span>
-                <button onclick="setStatMonth(1)" class="month-btn">▶</button>
+            <span class="sec-label">廠別分析</span>
+            <div class="flex items-center gap-1.5">
+                <button onclick="setStatMonth(-1)" class="mnav">◀</button>
+                <span id="statMonthLabel" class="text-[11px] font-bold text-stone-500 min-w-[60px] text-center"></span>
+                <button onclick="setStatMonth(1)" class="mnav">▶</button>
             </div>
         </div>
         <div class="card p-5">
-            <div id="factoryChart" class="space-y-3"></div>
+            <div id="factoryChart" class="space-y-3.5"></div>
             <div id="factoryEmpty" class="empty-state hidden">
-                <i data-lucide="bar-chart-2" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+                <i data-lucide="inbox" class="w-7 h-7 mx-auto mb-2 opacity-20"></i>
                 <p class="text-sm">此月份尚無查修紀錄</p>
             </div>
         </div>
     </div>
 
-    <!-- 近7日趨勢 -->
-    <div class="mb-4">
-        <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide mb-2 px-1">近 7 日趨勢</p>
-        <div class="card p-5">
-            <div id="weekTrendChart" class="flex items-end gap-1.5 h-20"></div>
-            <div id="weekTrendLabels" class="flex gap-1.5 mt-2"></div>
+    <!-- 7日趨勢 -->
+    <div>
+        <span class="sec-label px-1">近 7 日趨勢</span>
+        <div class="card p-4 mt-2">
+            <div id="weekTrendChart" class="flex items-end gap-2 h-14 mb-2"></div>
+            <div id="weekTrendLabels" class="flex gap-2"></div>
         </div>
     </div>
 
     <!-- 備份 -->
-    <div class="mb-4">
-        <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wide mb-2 px-1">資料管理</p>
-        <div class="bg-stone-800 rounded-[20px] p-5 text-white">
+    <div>
+        <span class="sec-label px-1">資料管理</span>
+        <div class="mt-2 rounded-[16px] p-5 text-white" style="background:var(--green)">
             <div class="flex items-center gap-3 mb-4">
-                <div class="p-2 bg-amber-500 rounded-lg">
+                <div class="p-2 rounded-lg" style="background:var(--brass)">
                     <i data-lucide="shield-check" class="w-4 h-4 text-white"></i>
                 </div>
                 <div>
                     <p class="text-sm font-bold">資料備份中心</p>
-                    <p class="text-[10px] text-stone-400">建議每月備份一次</p>
+                    <p class="text-[10px] opacity-50 mt-0.5">永恆金鑰保護中 · 建議每月備份</p>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="exportData()" class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95">
-                    <i data-lucide="download" class="w-4 h-4"></i> 匯出備份
+            <div class="grid grid-cols-2 gap-2.5">
+                <button onclick="exportData()" class="flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold active:scale-95 transition-transform" style="background:rgba(255,255,255,0.13)">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> 匯出備份
                 </button>
-                <button type="button" onclick="openImportModal()" class="flex items-center justify-center gap-2 bg-stone-700 hover:bg-stone-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95">
-                    <i data-lucide="upload" class="w-4 h-4"></i> 匯入還原
+                <button onclick="openImportModal()" class="flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold active:scale-95 transition-transform" style="background:rgba(255,255,255,0.13)">
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> 匯入還原
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ══ PAGE: 紀錄 ══ -->
+<!-- PAGE: 紀錄 -->
 <div id="page-records" class="page">
-    <!-- 搜尋 -->
-    <div class="relative mb-4">
-        <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-stone-400 pointer-events-none"></i>
-        <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋紀錄、廠別、機型..."
-            class="w-full bg-white border border-[var(--border)] px-10 py-3 rounded-2xl text-sm focus:ring-2 focus:ring-[var(--green)]/20 focus:border-[var(--green)]/40 outline-none shadow-sm transition-all">
-        <span id="searchCount" class="absolute right-4 top-3 text-[10px] font-bold text-stone-400"></span>
+    <div class="relative mb-3">
+        <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-stone-400 pointer-events-none"></i>
+        <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋廠別、機型、內容…"
+            class="w-full bg-white border border-stone-200 pl-10 pr-12 py-2.5 rounded-2xl text-sm outline-none shadow-sm transition-all focus:ring-2 focus:border-stone-300" style="focus:ring-color:var(--green-pale)">
+        <span id="searchCount" class="absolute right-4 top-2.5 text-[10px] font-bold text-stone-400"></span>
     </div>
-    <!-- 廠別篩選 -->
-    <div id="factoryFilterRow" class="flex gap-2 mb-4 overflow-x-auto no-scrollbar py-0.5"></div>
-    <!-- 列表 -->
+    <div id="factoryFilterRow" class="flex gap-2 mb-3 overflow-x-auto no-scroll py-0.5"></div>
     <div id="recordList"></div>
 </div>
 ```
 
 </main>
 
-<!-- ─── Bottom Tab Bar ─── -->
+<!-- TAB BAR -->
 
-<div class="tab-bar fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center px-8 pt-2 pb-6">
-    <button class="tab-btn active flex flex-col items-center gap-0.5 relative w-16" onclick="switchPage('dash', this)">
+<div class="tab-bar fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center px-6 pt-2 pb-7">
+    <button class="tab-btn active flex flex-col items-center w-16" onclick="switchPage('dash', this)">
         <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-        <span class="text-[10px] font-bold">總覽</span>
-        <div class="tab-indicator"></div>
+        <span class="text-[10px] font-bold mt-0.5">總覽</span>
+        <div class="tab-line"></div>
     </button>
-
-```
-<!-- 中間大型新增按鈕 -->
-<div class="flex flex-col items-center -mt-6">
-    <button onclick="openFormForAdd()" class="add-fab w-16 h-16 rounded-full flex items-center justify-center shadow-xl btn-press">
-        <i data-lucide="plus" class="w-7 h-7 text-white"></i>
+    <div class="flex flex-col items-center -mt-7">
+        <button onclick="openFormForAdd()" class="fab w-14 h-14 rounded-full flex items-center justify-center">
+            <i data-lucide="plus" class="w-6 h-6 text-white"></i>
+        </button>
+        <span class="text-[10px] font-bold mt-1" style="color:var(--green)">新增</span>
+    </div>
+    <button class="tab-btn flex flex-col items-center w-16" onclick="switchPage('records', this)">
+        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold mt-0.5">紀錄</span>
+        <div class="tab-line" style="opacity:0"></div>
     </button>
-    <span class="text-[10px] font-bold text-[var(--green)] mt-1">新增</span>
 </div>
 
-<button class="tab-btn flex flex-col items-center gap-0.5 relative w-16" onclick="switchPage('records', this)">
-    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-    <span class="text-[10px] font-bold">紀錄</span>
-    <div class="tab-indicator" style="opacity:0"></div>
-</button>
-```
-
-</div>
-
-<!-- ─── Form Sheet ─── -->
+<!-- FORM SHEET -->
 
 <div id="repairForm" class="hidden fixed inset-0 z-[100] form-overlay flex items-end">
-    <div class="form-sheet w-full max-h-[96vh] overflow-y-auto p-5 animate-in">
-        <div class="w-10 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
-        <div class="flex justify-between items-center mb-5">
-            <h2 id="formTitle" class="text-xl font-black">新增紀錄</h2>
-            <button onclick="closeForm()" class="text-blue-600 font-semibold">取消</button>
+    <div class="form-sheet w-full max-h-[96vh] overflow-y-auto p-5 slide-in">
+        <div class="w-9 h-1 bg-stone-300 rounded-full mx-auto mb-5"></div>
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="formTitle" class="font-display text-[22px]" style="color:var(--green)">新增紀錄</h2>
+            <button onclick="closeForm()" class="text-blue-500 font-semibold text-sm">取消</button>
         </div>
         <form onsubmit="saveRecord(event)" class="space-y-3">
-            <!-- 基本資訊 -->
-            <div class="card p-0 overflow-hidden">
-                <div class="form-field-row">
-                    <span class="form-field-label">廠別</span>
-                    <input type="text" id="f_factory" class="form-field-input" placeholder="輸入廠別名稱" required list="factory-list">
+            <div class="card overflow-hidden p-0">
+                <div class="field-row">
+                    <span class="field-label">廠別</span>
+                    <input type="text" id="f_factory" class="field-input" placeholder="輸入廠別" required list="factory-list">
                     <datalist id="factory-list"></datalist>
                 </div>
-                <div class="form-field-row">
-                    <span class="form-field-label">時間</span>
-                    <input type="datetime-local" id="f_datetime" class="form-field-input">
+                <div class="field-row">
+                    <span class="field-label">時間</span>
+                    <input type="datetime-local" id="f_datetime" class="field-input">
                 </div>
-                <div class="form-field-row">
-                    <span class="form-field-label">機型</span>
-                    <input type="text" id="f_model" class="form-field-input" placeholder="設備機型" required>
+                <div class="field-row">
+                    <span class="field-label">機型</span>
+                    <input type="text" id="f_model" class="field-input" placeholder="設備機型" required>
                 </div>
-                <div class="form-field-row">
-                    <span class="form-field-label">機號</span>
-                    <input type="text" id="f_sn" class="form-field-input" placeholder="序號（選填）">
+                <div class="field-row">
+                    <span class="field-label">機號</span>
+                    <input type="text" id="f_sn" class="field-input" placeholder="序號（選填）">
                 </div>
             </div>
-            <!-- 內容 -->
             <div class="card p-4">
-                <input type="text" id="f_item" placeholder="維修項目（標題）" class="w-full bg-transparent text-sm font-bold outline-none mb-3 border-b border-stone-100 pb-3 text-stone-800 placeholder-stone-300">
-                <textarea id="f_content" rows="5" placeholder="描述處理細節、故障原因、使用零件..." class="w-full bg-transparent text-sm outline-none text-stone-700 placeholder-stone-300 resize-none" required></textarea>
+                <input type="text" id="f_item" placeholder="維修項目標題" class="w-full bg-transparent text-sm font-bold outline-none mb-3 pb-3 border-b border-stone-100 placeholder-stone-300">
+                <textarea id="f_content" rows="5" placeholder="處理細節、故障原因、更換零件…" class="w-full bg-transparent text-sm outline-none resize-none placeholder-stone-300" required></textarea>
             </div>
-            <!-- 照片 + 送出 -->
             <div class="flex gap-3">
                 <div class="flex-1 relative card p-4 text-center cursor-pointer">
-                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processImage(this)">
+                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" onchange="processImage(this)">
                     <div id="imgPreviewContainer" class="hidden">
-                        <img id="imgPreview" src="" class="max-h-14 mx-auto rounded-lg shadow">
+                        <img id="imgPreview" src="" class="max-h-14 mx-auto rounded-lg">
                         <p class="text-[10px] text-stone-400 mt-1">點擊更換</p>
                     </div>
-                    <div id="uploadPrompt" class="text-stone-400 text-[11px] font-bold">
-                        <i data-lucide="camera" class="w-5 h-5 mx-auto mb-1 text-stone-300"></i>
-                        添加照片
+                    <div id="uploadPrompt" class="text-stone-300 text-[11px] font-bold">
+                        <i data-lucide="camera" class="w-5 h-5 mx-auto mb-1"></i>照片
                     </div>
                 </div>
-                <button type="submit" id="saveBtn" class="flex-[2.5] bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm shadow-md btn-press">
+                <button type="submit" id="saveBtn" class="flex-[2.5] text-white py-4 rounded-2xl font-bold text-sm btn-tap" style="background:var(--green)">
                     儲存紀錄
                 </button>
             </div>
@@ -442,412 +392,324 @@
     </div>
 </div>
 
-<!-- ─── Toast ─── -->
-
-<div id="toast" class="fixed top-14 left-1/2 bg-stone-900 text-white shadow-2xl px-5 py-2.5 rounded-full text-xs font-bold opacity-0 z-[200] pointer-events-none"></div>
-
-<!-- ─── Export Modal ─── -->
+<!-- EXPORT MODAL -->
 
 <div id="exportModal" class="hidden fixed inset-0 z-[150] form-overlay flex items-end">
-    <div class="form-sheet w-full p-5 animate-in">
-        <div class="w-10 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
-        <h2 class="text-xl font-black mb-1">匯出備份</h2>
+    <div class="form-sheet w-full p-5 slide-in">
+        <div class="w-9 h-1 bg-stone-300 rounded-full mx-auto mb-5"></div>
+        <h2 class="font-display text-xl mb-1" style="color:var(--green)">匯出備份</h2>
         <p id="exportDesc" class="text-xs text-stone-400 mb-4"></p>
         <div id="exportDesktopArea">
-            <button onclick="doFileDownload()" class="w-full bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm mb-3 btn-press flex items-center justify-center gap-2">
+            <button onclick="doFileDownload()" class="w-full text-white py-4 rounded-2xl font-bold text-sm mb-3 btn-tap flex items-center justify-center gap-2" style="background:var(--green)">
                 <i data-lucide="download" class="w-4 h-4"></i> 下載 JSON 檔案
             </button>
         </div>
         <div id="exportIosArea" class="hidden">
-            <textarea id="exportJsonText" rows="6" readonly
-                class="w-full bg-stone-100 rounded-2xl p-4 text-[11px] font-mono text-stone-600 outline-none resize-none border border-stone-200 mb-3"
-                onclick="this.select()"></textarea>
-            <button onclick="copyExportJson()" class="w-full bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm mb-3 btn-press flex items-center justify-center gap-2">
+            <textarea id="exportJsonText" rows="6" readonly class="w-full bg-stone-100 rounded-2xl p-4 text-[11px] font-mono text-stone-500 outline-none resize-none border border-stone-200 mb-3" onclick="this.select()"></textarea>
+            <button onclick="copyExportJson()" class="w-full text-white py-4 rounded-2xl font-bold text-sm mb-3 btn-tap flex items-center justify-center gap-2" style="background:var(--green)">
                 <i data-lucide="copy" class="w-4 h-4"></i> 複製全部 JSON
             </button>
-            <p class="text-[10px] text-stone-400 text-center leading-relaxed">複製後貼到備忘錄或 iCloud 文件儲存。<br>還原時使用「貼上 JSON」模式。</p>
+            <p class="text-[10px] text-stone-400 text-center leading-relaxed">複製後貼到備忘錄或 iCloud 儲存<br>還原時選「貼上 JSON」模式</p>
         </div>
-        <button onclick="closeExportModal()" class="w-full mt-3 py-3 rounded-2xl font-bold text-sm text-stone-500">關閉</button>
+        <button onclick="closeExportModal()" class="w-full mt-3 py-3 rounded-2xl font-bold text-sm text-stone-400">關閉</button>
     </div>
 </div>
 
-<!-- ─── Import Modal ─── -->
+<!-- IMPORT MODAL -->
 
 <div id="importModal" class="hidden fixed inset-0 z-[150] form-overlay flex items-end">
-    <div class="form-sheet w-full p-5 animate-in">
-        <div class="w-10 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
-        <h2 class="text-xl font-black mb-1">匯入還原</h2>
+    <div class="form-sheet w-full p-5 slide-in">
+        <div class="w-9 h-1 bg-stone-300 rounded-full mx-auto mb-5"></div>
+        <h2 class="font-display text-xl mb-1" style="color:var(--green)">匯入還原</h2>
         <p class="text-xs text-stone-400 mb-4">⚠️ 匯入將覆蓋目前所有資料，請先備份！</p>
-        <div class="flex bg-stone-100 rounded-2xl p-1 mb-4">
+        <div class="flex bg-stone-100 rounded-2xl p-1 mb-4 gap-1">
             <button onclick="switchImportTab('file')" id="importTabFile" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700">📂 選擇檔案</button>
             <button onclick="switchImportTab('paste')" id="importTabPaste" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400">📋 貼上 JSON</button>
         </div>
         <div id="importFileTab">
-            <label class="w-full border-2 border-dashed border-stone-200 rounded-2xl py-8 flex flex-col items-center gap-2 cursor-pointer hover:border-[var(--green)] hover:bg-[var(--green-pale)] transition-all block">
-                <i data-lucide="file-json" class="w-8 h-8 text-stone-300"></i>
-                <span class="text-sm font-bold text-stone-500">點擊選擇備份檔案</span>
-                <span class="text-[10px] text-stone-400">支援 .json 格式</span>
+            <label class="w-full border-2 border-dashed border-stone-200 rounded-2xl py-8 flex flex-col items-center gap-2 cursor-pointer active:bg-stone-50 transition-all block">
+                <i data-lucide="file-json" class="w-7 h-7 text-stone-300"></i>
+                <span class="text-sm font-bold text-stone-400">點擊選擇備份檔案</span>
+                <span class="text-[10px] text-stone-300">支援 .json 格式</span>
                 <input type="file" class="hidden" accept=".json,.txt" onchange="importFromFile(this)">
             </label>
         </div>
         <div id="importPasteTab" class="hidden">
-            <textarea id="importPasteText" rows="7" placeholder="將備份的 JSON 文字貼在這裡..."
-                class="w-full bg-stone-100 rounded-2xl p-4 text-[11px] font-mono text-stone-700 outline-none resize-none border border-stone-200 mb-3 focus:border-[var(--green)] focus:bg-white transition-all"></textarea>
-            <button onclick="importFromPaste()" class="w-full bg-[var(--green)] text-white py-4 rounded-2xl font-black text-sm btn-press flex items-center justify-center gap-2">
+            <textarea id="importPasteText" rows="7" placeholder="將備份的 JSON 文字貼在這裡…"
+                class="w-full bg-stone-100 rounded-2xl p-4 text-[11px] font-mono text-stone-600 outline-none resize-none border border-stone-200 mb-3 transition-all focus:border-stone-300 focus:bg-white"></textarea>
+            <button onclick="importFromPaste()" class="w-full text-white py-4 rounded-2xl font-bold text-sm btn-tap flex items-center justify-center gap-2" style="background:var(--green)">
                 <i data-lucide="check-circle" class="w-4 h-4"></i> 確認還原
             </button>
         </div>
-        <button onclick="closeImportModal()" class="w-full mt-3 py-3 rounded-2xl font-bold text-sm text-stone-500">取消</button>
+        <button onclick="closeImportModal()" class="w-full mt-3 py-3 rounded-2xl font-bold text-sm text-stone-400">取消</button>
     </div>
 </div>
 
-<script>
-// ────────────────────────────────────────────
-// Core Data — 永恆金鑰（升級不遺失資料）
-// 讀取順序：新 key → 舊 key v2 → 原始 key，並自動統一寫入新 key
-// ────────────────────────────────────────────
-const DB_KEY      = 'FIXLOG_MASTER_DATABASE';   // 統一使用此 key
-const LEGACY_KEYS = [
-    'FIXLOG_MASTER_DATABASE',   // v3（同名，保險起見列入）
-    'fixlog_records',           // 可能的舊版 key
-    'fixlog-data',
-    'FL_RECORDS'
-];
+<!-- TOAST -->
 
-function loadRecordsFromStorage() {
-    // 嘗試每個 key，找到第一個有資料的
+<div id="toast" class="fixed top-14 left-1/2 px-5 py-2.5 rounded-full text-xs font-bold text-white opacity-0 z-[200] pointer-events-none" style="background:var(--green);transform:translateX(-50%);transition:opacity 0.25s ease,top 0.25s ease"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// 永恆金鑰 — 升級不遺失資料
+// ═══════════════════════════════════════════
+const DB_KEY = 'FIXLOG_MASTER_DATABASE';
+const LEGACY_KEYS = ['FIXLOG_MASTER_DATABASE','fixlog_records','fixlog-data','FL_RECORDS'];
+
+function loadRecords() {
     for (const key of LEGACY_KEYS) {
         try {
             const raw = localStorage.getItem(key);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    // 統一寫回主 key
-                    localStorage.setItem(DB_KEY, raw);
-                    return parsed;
-                }
+            if (!raw) continue;
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                localStorage.setItem(DB_KEY, raw);
+                return parsed;
             }
         } catch(e) {}
     }
     return [];
 }
 
-let records = loadRecordsFromStorage();
-let currentImageData = null;
-let selectedFactory = '全部';
-let editModeId = null;
-let statYear = new Date().getFullYear();
-let statMonth = new Date().getMonth();
+let records    = loadRecords();
+let currentImg = null;
+let selFac     = '全部';
+let editId     = null;
+let statYear   = new Date().getFullYear();
+let statMonth  = new Date().getMonth();
 
-// ────────────────────────────────────────────
-// Tab Navigation
-// ────────────────────────────────────────────
-const pageTitles = { dash: '查修日誌', records: '維修紀錄' };
+// ═══════════════════════════════════════════
+// Navigation
+// ═══════════════════════════════════════════
 function switchPage(name, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => {
         b.classList.remove('active');
-        b.querySelector('.tab-indicator').style.opacity = '0';
+        const l = b.querySelector('.tab-line'); if (l) l.style.opacity = '0';
     });
-    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('page-'+name).classList.add('active');
     btn.classList.add('active');
-    btn.querySelector('.tab-indicator').style.opacity = '1';
-    document.getElementById('navTitle').innerText = pageTitles[name];
-    if (name === 'records') renderRecords();
-    if (name === 'dash') renderDashboard();
+    const l = btn.querySelector('.tab-line'); if (l) l.style.opacity = '1';
+    document.getElementById('navTitle').innerText = name==='dash' ? '查修日誌' : '維修紀錄';
+    if (name==='records') renderRecords();
+    if (name==='dash')    renderDashboard();
 }
 
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 // Dashboard
-// ────────────────────────────────────────────
-function setStatMonth(delta) {
-    statMonth += delta;
-    if (statMonth > 11) { statMonth = 0; statYear++; }
-    if (statMonth < 0) { statMonth = 11; statYear--; }
+// ═══════════════════════════════════════════
+function setStatMonth(d) {
+    statMonth += d;
+    if (statMonth > 11) { statMonth=0; statYear++; }
+    if (statMonth < 0)  { statMonth=11; statYear--; }
     renderDashboard();
 }
 
 function renderDashboard() {
-    const now = new Date();
-    const thisM = now.getMonth(), thisY = now.getFullYear();
-    const lastM = thisM === 0 ? 11 : thisM - 1;
-    const lastY = thisM === 0 ? thisY - 1 : thisY;
+    const now=new Date(), tM=now.getMonth(), tY=now.getFullYear();
+    const lM=tM===0?11:tM-1, lY=tM===0?tY-1:tY;
+    const mR  = records.filter(r => { const d=new Date(r.datetime); return d.getMonth()===tM&&d.getFullYear()===tY; });
+    const lmR = records.filter(r => { const d=new Date(r.datetime); return d.getMonth()===lM&&d.getFullYear()===lY; });
+    const wR  = records.filter(r => new Date(r.datetime) >= new Date(now-7*86400000));
+    const fS  = new Set(records.map(r=>r.factory));
 
-    // Hero numbers
-    const monthRecs = records.filter(r => {
-        const d = new Date(r.datetime);
-        return d.getMonth() === thisM && d.getFullYear() === thisY;
-    });
-    const lastMonthRecs = records.filter(r => {
-        const d = new Date(r.datetime);
-        return d.getMonth() === lastM && d.getFullYear() === lastY;
-    });
-    const weekAgo = new Date(now - 7 * 86400000);
-    const weekRecs = records.filter(r => new Date(r.datetime) >= weekAgo);
-    const factories = new Set(records.map(r => r.factory));
+    animNum('heroMonthCount', mR.length);
+    animNum('heroTotal',      records.length);
+    animNum('heroFactories',  fS.size);
+    animNum('heroWeek',       wR.length);
+    document.getElementById('heroMonthLabel').innerText = `${tY} 年 ${tM+1} 月`;
 
-    animateNum('heroMonthCount', monthRecs.length);
-    animateNum('heroTotal', records.length);
-    animateNum('heroFactories', factories.size);
-    animateNum('heroWeek', weekRecs.length);
-
-    const mm = document.getElementById('heroMonthLabel');
-    mm.innerText = `${thisY}年${thisM+1}月`;
     const mom = document.getElementById('heroMoM');
-    if (lastMonthRecs.length === 0) {
-        mom.innerText = '—';
-    } else {
-        const pct = Math.round((monthRecs.length - lastMonthRecs.length) / lastMonthRecs.length * 100);
-        mom.innerText = (pct >= 0 ? '+' : '') + pct + '%';
-        mom.style.color = pct >= 0 ? '#a3c97c' : '#f87171';
+    if (!lmR.length) { mom.innerText='—'; mom.style.color='rgba(255,255,255,0.4)'; }
+    else {
+        const p = Math.round((mR.length-lmR.length)/lmR.length*100);
+        mom.innerText = (p>=0?'+':'')+p+'%';
+        mom.style.color = p>=0?'#a8d080':'#f87171';
     }
 
-    // Stat month label
-    document.getElementById('statMonthLabel').innerText = `${statYear}年${statMonth+1}月`;
-
-    // Factory chart for statMonth
-    const statRecs = records.filter(r => {
-        const d = new Date(r.datetime);
-        return d.getMonth() === statMonth && d.getFullYear() === statYear;
-    });
-    const factChart = document.getElementById('factoryChart');
-    const factEmpty = document.getElementById('factoryEmpty');
-    if (statRecs.length === 0) {
-        factChart.classList.add('hidden');
-        factEmpty.classList.remove('hidden');
-    } else {
-        factChart.classList.remove('hidden');
-        factEmpty.classList.add('hidden');
-        const counts = {};
-        statRecs.forEach(r => { counts[r.factory] = (counts[r.factory] || 0) + 1; });
-        const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
-        const max = sorted[0][1];
-        const colors = ['#3a5129','#4e6e36','#6b8f4a','#8fb366','#b5d68f','#d4e8b8'];
-        factChart.innerHTML = sorted.map(([fac, cnt], i) => `
+    document.getElementById('statMonthLabel').innerText = `${statYear}/${String(statMonth+1).padStart(2,'0')}`;
+    const sR = records.filter(r => { const d=new Date(r.datetime); return d.getMonth()===statMonth&&d.getFullYear()===statYear; });
+    const fc=document.getElementById('factoryChart'), fe=document.getElementById('factoryEmpty');
+    if (!sR.length) { fc.classList.add('hidden'); fe.classList.remove('hidden'); }
+    else {
+        fc.classList.remove('hidden'); fe.classList.add('hidden');
+        const cnt={}; sR.forEach(r => cnt[r.factory]=(cnt[r.factory]||0)+1);
+        const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+        const max=sorted[0][1];
+        const sh=['#2d3e20','#3d5429','#516b36','#6b8c4a','#8aaa63','#aac880'];
+        fc.innerHTML = sorted.map(([f,c],i) => `
             <div class="flex items-center gap-3">
-                <div class="w-16 text-[11px] font-bold text-stone-600 text-right flex-shrink-0 truncate">${fac}</div>
-                <div class="flex-1 bar-wrap">
-                    <div class="bar-fill" data-width="${cnt/max*100}" style="background:${colors[i%colors.length]}; width:0"></div>
-                </div>
-                <div class="stat-num text-sm font-bold text-stone-700 w-6 text-right">${cnt}</div>
-            </div>
-        `).join('');
-        // Animate bars
-        requestAnimationFrame(() => {
-            factChart.querySelectorAll('.bar-fill').forEach(el => {
-                el.style.width = el.dataset.width + '%';
-            });
-        });
+                <div class="w-14 text-[11px] font-bold text-right flex-shrink-0 truncate" style="color:var(--text-mid)">${f}</div>
+                <div class="flex-1 bar-track"><div class="bar-fill" data-w="${c/max*100}" style="background:${sh[i%sh.length]};width:0"></div></div>
+                <div class="stat-num text-sm font-bold w-5 text-right" style="color:var(--text)">${c}</div>
+            </div>`).join('');
+        requestAnimationFrame(() => fc.querySelectorAll('.bar-fill').forEach(el => el.style.width=el.dataset.w+'%'));
     }
 
-    // Week trend
-    const trendWrap = document.getElementById('weekTrendChart');
-    const trendLabels = document.getElementById('weekTrendLabels');
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        d.setHours(0,0,0,0);
-        const next = new Date(d); next.setDate(next.getDate()+1);
-        const cnt = records.filter(r => { const rd = new Date(r.datetime); return rd >= d && rd < next; }).length;
-        const wd = ['日','一','二','三','四','五','六'][d.getDay()];
-        days.push({ cnt, label: wd, isToday: i === 0 });
+    const tw=document.getElementById('weekTrendChart'), tl=document.getElementById('weekTrendLabels');
+    const days=[];
+    for (let i=6;i>=0;i--) {
+        const d=new Date(now); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+        const n=new Date(d); n.setDate(n.getDate()+1);
+        const c=records.filter(r=>{const rd=new Date(r.datetime);return rd>=d&&rd<n;}).length;
+        days.push({c,label:['日','一','二','三','四','五','六'][d.getDay()],today:i===0});
     }
-    const maxDay = Math.max(...days.map(d => d.cnt), 1);
-    const barColors = days.map(d => d.isToday ? 'var(--green)' : '#dde8d5');
-    trendWrap.innerHTML = days.map((d,i) => `
+    const maxD=Math.max(...days.map(d=>d.c),1);
+    tw.innerHTML=days.map(d=>`
         <div class="flex-1 flex flex-col items-center justify-end gap-1">
-            <span class="stat-num text-[10px] font-bold ${d.cnt > 0 ? 'text-stone-600' : 'text-transparent'}">${d.cnt || ''}</span>
-            <div class="w-full rounded-t-lg transition-all duration-700" style="height:${Math.max(d.cnt/maxDay*56,4)}px; background:${barColors[i]}"></div>
-        </div>
-    `).join('');
-    trendLabels.innerHTML = days.map((d,i) => `
-        <div class="flex-1 text-center text-[10px] font-bold ${d.isToday ? 'text-[var(--green)]' : 'text-stone-400'}">${d.label}</div>
-    `).join('');
+            <span class="stat-num text-[10px] font-bold ${d.c?'text-stone-500':'text-transparent'}">${d.c||''}</span>
+            <div class="w-full rounded-t-md" style="height:${Math.max(d.c/maxD*44,3)}px;background:${d.today?'var(--green)':'var(--green-line)'}"></div>
+        </div>`).join('');
+    tl.innerHTML=days.map(d=>`
+        <div class="flex-1 text-center text-[10px] font-bold" style="color:${d.today?'var(--green)':'var(--text-sub)'}">${d.label}</div>`).join('');
 
     lucide.createIcons();
 }
 
-function animateNum(id, target) {
-    const el = document.getElementById(id);
-    const start = parseInt(el.innerText) || 0;
-    const dur = 600;
-    const startTime = performance.now();
-    function step(t) {
-        const progress = Math.min((t - startTime) / dur, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        el.innerText = Math.round(start + (target - start) * ease);
-        if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
+function animNum(id, target) {
+    const el=document.getElementById(id), from=parseInt(el.innerText)||0;
+    const dur=550, t0=performance.now();
+    const tick=t=>{
+        const p=Math.min((t-t0)/dur,1), e=1-Math.pow(1-p,3);
+        el.innerText=Math.round(from+(target-from)*e);
+        if(p<1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
 }
 
-// ────────────────────────────────────────────
-// Meeting Reminder
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
+// Meeting
+// ═══════════════════════════════════════════
 function updateMeeting() {
-    const now = new Date(); now.setHours(0,0,0,0);
+    const now=new Date(); now.setHours(0,0,0,0);
     let target;
-    const manualDate = localStorage.getItem('fixlog_manual_meeting');
-    const resetBtn = document.getElementById('resetMeetingBtn');
-    if (manualDate) {
-        target = new Date(manualDate);
-        resetBtn.classList.remove('hidden');
-        document.getElementById('meetingStatus').innerText = "📍 目前為手動設定日期";
+    const manual=localStorage.getItem('fixlog_manual_meeting');
+    const rb=document.getElementById('resetMeetingBtn');
+    if (manual) {
+        target=new Date(manual); rb.classList.remove('hidden');
+        document.getElementById('meetingStatus').innerText='📍 手動設定日期';
     } else {
-        const currentDay = now.getDay();
-        const daysToFri = (currentDay <= 5) ? (5 - currentDay) : (12 - currentDay);
-        target = new Date(now.getTime() + daysToFri * 24 * 60 * 60 * 1000);
-        resetBtn.classList.add('hidden');
-        document.getElementById('meetingStatus').innerText = "✨ 自動計算：本週五開會";
+        const dow=now.getDay(), toF=(dow<=5)?(5-dow):(12-dow);
+        target=new Date(now.getTime()+toF*86400000); rb.classList.add('hidden');
+        document.getElementById('meetingStatus').innerText='✦ 自動計算：本週五';
     }
-    document.getElementById('meetingDateText').innerText = `${target.getFullYear()}年${target.getMonth()+1}月${target.getDate()}日`;
-    const diff = Math.ceil((target - now) / 86400000);
-    const dc = document.getElementById('daysCount');
-    if (diff === 0) { dc.innerText = "今天"; dc.className = "badge bg-red-100 text-red-600"; }
-    else if (diff < 0) { dc.innerText = `已過 ${Math.abs(diff)} 天`; dc.className = "badge bg-stone-100 text-stone-400"; }
-    else { dc.innerText = `剩餘 ${diff} 天`; dc.className = "badge bg-[var(--green-pale)] text-[var(--green)]"; }
+    document.getElementById('meetingDateText').innerText=`${target.getFullYear()} / ${target.getMonth()+1} / ${target.getDate()}`;
+    const diff=Math.ceil((target-now)/86400000);
+    const dc=document.getElementById('daysCount');
+    if      (diff===0) { dc.innerText='今天';          dc.className='badge bg-red-100 text-red-600'; }
+    else if (diff<0)   { dc.innerText=`已過 ${-diff} 天`; dc.className='badge bg-stone-100 text-stone-400'; }
+    else               { dc.innerText=`剩 ${diff} 天`;  dc.className='badge text-white'; dc.style.cssText='background:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px'; }
 }
-function handleManualDate(val) {
-    if (!val) return;
-    localStorage.setItem('fixlog_manual_meeting', val);
-    updateMeeting(); showToast("📅 月會日期已更新");
-}
-function resetMeetingDate(e) {
-    if (e) e.stopPropagation();
-    localStorage.removeItem('fixlog_manual_meeting');
-    updateMeeting(); showToast("🔄 已恢復自動計算");
-}
+function handleManualDate(v) { if(!v)return; localStorage.setItem('fixlog_manual_meeting',v); updateMeeting(); showToast('📅 月會日期已更新'); }
+function resetMeetingDate(e) { if(e)e.stopPropagation(); localStorage.removeItem('fixlog_manual_meeting'); updateMeeting(); showToast('🔄 已恢復自動計算'); }
 
-// ────────────────────────────────────────────
-// Records Page
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
+// Records
+// ═══════════════════════════════════════════
 function renderRecords() {
-    const s = document.getElementById('searchInput').value.toLowerCase();
-    const list = document.getElementById('recordList');
-    const fr = document.getElementById('factoryFilterRow');
-    const facs = ['全部', ...new Set(records.map(r => r.factory))];
-    fr.innerHTML = facs.map(f => `
-        <button onclick="setFilter('${f}')" class="pill ${selectedFactory === f ? 'on' : 'off'}">${f}</button>
-    `).join('');
-    const res = records.filter(r => {
-        const m = r.model.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.factory.toLowerCase().includes(s) || r.item.toLowerCase().includes(s);
-        return m && (selectedFactory === '全部' || r.factory === selectedFactory);
+    const s=document.getElementById('searchInput').value.toLowerCase();
+    const list=document.getElementById('recordList');
+    const fr=document.getElementById('factoryFilterRow');
+    fr.innerHTML=['全部',...new Set(records.map(r=>r.factory))].map(f=>
+        `<button onclick="setFilter('${f}')" class="pill ${selFac===f?'on':'off'}">${f}</button>`
+    ).join('');
+    const res=records.filter(r=>{
+        const hit=[r.model,r.content,r.factory,r.item].some(v=>v.toLowerCase().includes(s));
+        return hit&&(selFac==='全部'||r.factory===selFac);
     });
-    const sc = document.getElementById('searchCount');
-    sc.innerText = s || selectedFactory !== '全部' ? `${res.length} 筆` : '';
-    if (res.length === 0) {
-        list.innerHTML = `<div class="empty-state">
-            <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
-            <p class="text-sm font-medium">找不到符合的紀錄</p>
-            <p class="text-xs mt-1 opacity-60">試試其他關鍵字</p>
-        </div>`;
+    document.getElementById('searchCount').innerText=(s||selFac!=='全部')?`${res.length} 筆`:'';
+    if (!res.length) {
+        list.innerHTML=`<div class="empty-state"><i data-lucide="search-x" class="w-7 h-7 mx-auto mb-2 opacity-20"></i><p class="text-sm font-medium text-stone-400">找不到符合的紀錄</p></div>`;
     } else {
-        list.innerHTML = res.map((r, idx) => `
-            <div class="card mb-3 animate-in" data-card-id="${r.id}" style="animation-delay:${idx * 0.04}s">
+        list.innerHTML=res.map((r,idx)=>`
+            <div class="card card-tap mb-3 slide-in" data-card-id="${r.id}" style="animation-delay:${idx*0.03}s">
                 <div class="p-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex items-start gap-2 flex-1 min-w-0">
-                            <div class="record-dot mt-1.5"></div>
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-[10px] font-black text-[var(--green)] bg-[var(--green-pale)] px-2 py-0.5 rounded-full">${r.factory}</span>
-                                    <span class="text-[10px] text-stone-400 font-mono">${r.datetime}</span>
-                                </div>
-                                <h3 class="font-black text-[15px] text-stone-900 mt-1 leading-tight">${r.model} <span class="text-xs text-stone-400 font-normal">#${r.sn}</span></h3>
-                                <p class="text-[11px] font-bold text-stone-500 mt-0.5">${r.item}</p>
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 min-w-0 pr-3">
+                            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background:var(--green-pale);color:var(--green)">${r.factory}</span>
+                                <span class="font-mono text-[10px] text-stone-400">${r.datetime}</span>
                             </div>
+                            <h3 class="font-bold text-[15px] leading-snug" style="color:var(--text)">${r.model} <span class="text-xs font-normal text-stone-400">#${r.sn}</span></h3>
+                            <p class="text-[11px] font-semibold mt-0.5" style="color:var(--green-lt)">${r.item}</p>
                         </div>
-                        <div class="flex gap-2 items-center ml-2 flex-shrink-0">
-                            <button data-action="edit" data-id="${r.id}"
-                                class="flex items-center gap-1.5 bg-stone-100 active:bg-stone-200 active:scale-95 px-3 py-1.5 rounded-xl transition-all">
-                                <i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-500 pointer-events-none"></i>
-                                <span class="text-[11px] font-bold text-stone-500 pointer-events-none">編輯</span>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <button data-action="edit" data-id="${r.id}" class="rac edit">
+                                <i data-lucide="pencil" class="w-3 h-3 pointer-events-none"></i>
+                                <span class="pointer-events-none">編輯</span>
                             </button>
-                            <button data-action="copy" data-id="${r.id}"
-                                class="flex items-center gap-1.5 bg-blue-50 active:bg-blue-100 active:scale-95 px-3 py-1.5 rounded-xl transition-all">
-                                <i data-lucide="copy" class="w-3.5 h-3.5 text-blue-500 pointer-events-none"></i>
-                                <span class="text-[11px] font-bold text-blue-500 pointer-events-none">複製</span>
+                            <button data-action="copy" data-id="${r.id}" class="rac copy">
+                                <i data-lucide="copy" class="w-3 h-3 pointer-events-none"></i>
+                                <span class="pointer-events-none">複製</span>
                             </button>
-                            <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-stone-300 pointer-events-none"></i>
+                            <i data-lucide="chevron-right" class="chevron-icon w-4 h-4 text-stone-300 pointer-events-none ml-0.5"></i>
                         </div>
                     </div>
                     <div class="collapse-content">
                         <div class="inner-content">
-                            <div class="bg-stone-50 rounded-xl p-3 text-sm text-stone-600 leading-relaxed border border-stone-100 mt-1">${r.content.replace(/\n/g,'<br>')}</div>
-                            ${r.image ? `<img src="${r.image}" class="w-full mt-3 rounded-2xl shadow-sm object-cover max-h-48">` : ''}
-                            <div class="flex justify-end mt-3 pt-2 border-t border-stone-100">
-                                <button data-action="delete" data-id="${r.id}"
-                                    class="flex items-center gap-1.5 bg-red-50 active:bg-red-100 active:scale-95 px-4 py-2 rounded-xl transition-all">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500 pointer-events-none"></i>
-                                    <span class="text-xs font-bold text-red-500 pointer-events-none">刪除紀錄</span>
+                            <div class="mt-3 rounded-xl p-3 text-sm leading-relaxed border" style="background:#fafaf8;border-color:#f0ede8;color:var(--text-mid)">${r.content.replace(/\n/g,'<br>')}</div>
+                            ${r.image?`<img src="${r.image}" class="w-full mt-3 rounded-2xl object-cover max-h-52">`:''}
+                            <div class="flex justify-end mt-3 pt-3 border-t" style="border-color:#f0ede8">
+                                <button data-action="delete" data-id="${r.id}" class="rac del">
+                                    <i data-lucide="trash-2" class="w-3 h-3 pointer-events-none"></i>
+                                    <span class="pointer-events-none">刪除紀錄</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
     lucide.createIcons();
 }
 
-function setFilter(f) { selectedFactory = f; renderRecords(); }
+function setFilter(f) { selFac=f; renderRecords(); }
 
-// ── 事件委派：掛在 recordList 容器，處理所有卡片互動 ──
 document.getElementById('recordList').addEventListener('click', function(e) {
-    const actionBtn = e.target.closest('[data-action]');
-    const card = e.target.closest('[data-card-id]');
+    const btn=e.target.closest('[data-action]'), card=e.target.closest('[data-card-id]');
     if (!card) return;
-
-    if (actionBtn) {
+    if (btn) {
         e.stopPropagation();
-        const action = actionBtn.dataset.action;
-        const id = actionBtn.dataset.id;
-        if (action === 'edit')   openFormForEdit(id);
-        if (action === 'copy')   copyRecord(id);
-        if (action === 'delete') deleteRecord(id);
-    } else {
-        card.classList.toggle('is-open');
-    }
+        const {action,id}=btn.dataset;
+        if (action==='edit')   openFormForEdit(id);
+        if (action==='copy')   copyRecord(id);
+        if (action==='delete') deleteRecord(id);
+    } else { card.classList.toggle('is-open'); }
 });
 
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 // Form
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 function openFormForAdd() {
-    editModeId = null;
-    document.querySelector('form').reset();
-    document.getElementById('formTitle').innerText = "新增紀錄";
-    document.getElementById('saveBtn').innerText = "儲存紀錄";
-    currentImageData = null;
+    editId=null; document.querySelector('form').reset();
+    document.getElementById('formTitle').innerText='新增紀錄';
+    document.getElementById('saveBtn').innerText='儲存紀錄';
+    currentImg=null;
     document.getElementById('imgPreviewContainer').classList.add('hidden');
     document.getElementById('uploadPrompt').classList.remove('hidden');
-    const n = new Date(); n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
-    document.getElementById('f_datetime').value = n.toISOString().slice(0, 16);
-    // Populate factory datalist
-    const dl = document.getElementById('factory-list');
-    dl.innerHTML = [...new Set(records.map(r => r.factory))].map(f => `<option value="${f}">`).join('');
+    const n=new Date(); n.setMinutes(n.getMinutes()-n.getTimezoneOffset());
+    document.getElementById('f_datetime').value=n.toISOString().slice(0,16);
+    document.getElementById('factory-list').innerHTML=[...new Set(records.map(r=>r.factory))].map(f=>`<option value="${f}">`).join('');
     document.getElementById('repairForm').classList.remove('hidden');
 }
 function openFormForEdit(id) {
-    const r = records.find(x => x.id === id); if (!r) return;
-    editModeId = id;
-    document.getElementById('formTitle').innerText = "編輯紀錄";
-    document.getElementById('saveBtn').innerText = "更新紀錄";
-    document.getElementById('f_factory').value = r.factory;
-    document.getElementById('f_datetime').value = r.datetime.replace(' ', 'T');
-    document.getElementById('f_model').value = r.model;
-    document.getElementById('f_sn').value = r.sn === '-' ? '' : r.sn;
-    document.getElementById('f_item').value = r.item;
-    document.getElementById('f_content').value = r.content;
+    const r=records.find(x=>x.id===id); if(!r)return;
+    editId=id;
+    document.getElementById('formTitle').innerText='編輯紀錄';
+    document.getElementById('saveBtn').innerText='更新紀錄';
+    document.getElementById('f_factory').value=r.factory;
+    document.getElementById('f_datetime').value=r.datetime.replace(' ','T');
+    document.getElementById('f_model').value=r.model;
+    document.getElementById('f_sn').value=r.sn==='-'?'':r.sn;
+    document.getElementById('f_item').value=r.item;
+    document.getElementById('f_content').value=r.content;
     if (r.image) {
-        currentImageData = r.image;
-        document.getElementById('imgPreview').src = r.image;
+        currentImg=r.image;
+        document.getElementById('imgPreview').src=r.image;
         document.getElementById('imgPreviewContainer').classList.remove('hidden');
         document.getElementById('uploadPrompt').classList.add('hidden');
     } else {
-        currentImageData = null;
+        currentImg=null;
         document.getElementById('imgPreviewContainer').classList.add('hidden');
         document.getElementById('uploadPrompt').classList.remove('hidden');
     }
@@ -856,202 +718,128 @@ function openFormForEdit(id) {
 function closeForm() { document.getElementById('repairForm').classList.add('hidden'); }
 
 function processImage(input) {
-    const file = input.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            let w = img.width, h = img.height, max = 900;
-            if (w > h && w > max) { h *= max/w; w = max; }
-            else if (h > max) { w *= max/h; h = max; }
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            currentImageData = canvas.toDataURL('image/jpeg', 0.7);
-            document.getElementById('imgPreview').src = currentImageData;
+    const file=input.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        const img=new Image();
+        img.onload=()=>{
+            const canvas=document.createElement('canvas');
+            let w=img.width,h=img.height,max=900;
+            if(w>h&&w>max){h*=max/w;w=max;}else if(h>max){w*=max/h;h=max;}
+            canvas.width=w;canvas.height=h;
+            canvas.getContext('2d').drawImage(img,0,0,w,h);
+            currentImg=canvas.toDataURL('image/jpeg',0.72);
+            document.getElementById('imgPreview').src=currentImg;
             document.getElementById('imgPreviewContainer').classList.remove('hidden');
             document.getElementById('uploadPrompt').classList.add('hidden');
         };
-        img.src = e.target.result;
+        img.src=e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
 function saveRecord(e) {
     e.preventDefault();
-    const d = {
+    const d={
         factory: document.getElementById('f_factory').value.trim(),
-        datetime: document.getElementById('f_datetime').value.replace('T', ' '),
-        model: document.getElementById('f_model').value.trim(),
-        sn: document.getElementById('f_sn').value.trim() || '-',
-        item: document.getElementById('f_item').value.trim() || '未分類',
+        datetime:document.getElementById('f_datetime').value.replace('T',' '),
+        model:   document.getElementById('f_model').value.trim(),
+        sn:      document.getElementById('f_sn').value.trim()||'-',
+        item:    document.getElementById('f_item').value.trim()||'未分類',
         content: document.getElementById('f_content').value.trim(),
-        image: currentImageData
+        image:   currentImg
     };
-    if (editModeId) {
-        const i = records.findIndex(x => x.id === editModeId);
-        records[i] = { ...records[i], ...d };
-        showToast("✅ 紀錄已更新");
-    } else {
-        records.unshift({ id: "ID" + Date.now(), ...d });
-        showToast("✅ 紀錄已儲存");
-    }
-    localStorage.setItem(DB_KEY, JSON.stringify(records));
+    if (editId) { records[records.findIndex(x=>x.id===editId)]={...records.find(x=>x.id===editId),...d}; showToast('✅ 紀錄已更新'); }
+    else        { records.unshift({id:'ID'+Date.now(),...d}); showToast('✅ 紀錄已儲存'); }
+    localStorage.setItem(DB_KEY,JSON.stringify(records));
     closeForm(); renderDashboard();
-    // Switch to records page briefly if already there
-    if (document.getElementById('page-records').classList.contains('active')) renderRecords();
+    if(document.getElementById('page-records').classList.contains('active')) renderRecords();
 }
 
-// ────────────────────────────────────────────
-// CRUD helpers
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
+// CRUD
+// ═══════════════════════════════════════════
 function deleteRecord(id) {
-    if (confirm('確定刪除此紀錄？')) {
-        records = records.filter(r => r.id !== id);
-        localStorage.setItem(DB_KEY, JSON.stringify(records));
-        renderRecords(); renderDashboard(); showToast("🗑 紀錄已移除");
-    }
+    if(!confirm('確定刪除此紀錄？'))return;
+    records=records.filter(r=>r.id!==id);
+    localStorage.setItem(DB_KEY,JSON.stringify(records));
+    renderRecords(); renderDashboard(); showToast('🗑 紀錄已移除');
 }
 function copyRecord(id) {
-    const r = records.find(x => x.id === id);
-    const text = `【FixLog 維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model} #${r.sn}\n項目：${r.item}\n內容：${r.content}`;
-    navigator.clipboard.writeText(text).then(() => showToast("📋 已複製到剪貼簿"));
+    const r=records.find(x=>x.id===id);
+    navigator.clipboard.writeText(`【FixLog 維修回報】\n廠別：${r.factory}\n時間：${r.datetime}\n設備：${r.model} #${r.sn}\n項目：${r.item}\n內容：${r.content}`)
+        .then(()=>showToast('📋 已複製到剪貼簿'));
 }
 
-// ────────────────────────────────────────────
-// Import / Export — cross-platform (iOS + Desktop)
-// ────────────────────────────────────────────
-function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
+// ═══════════════════════════════════════════
+// Import / Export
+// ═══════════════════════════════════════════
+function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1); }
 
-// ── Export ──
 function exportData() {
-    if (records.length === 0) { showToast("❌ 目前沒有紀錄可匯出"); return; }
-    const json = JSON.stringify(records, null, 2);
-    const desc = document.getElementById('exportDesc');
-    const desktop = document.getElementById('exportDesktopArea');
-    const ios = document.getElementById('exportIosArea');
-
-    if (isIOS()) {
-        // iOS: show copyable textarea
-        desc.innerText = `共 ${records.length} 筆紀錄 — 複製後儲存至備忘錄`;
-        desktop.classList.add('hidden');
-        ios.classList.remove('hidden');
-        document.getElementById('exportJsonText').value = json;
-    } else {
-        // Desktop: normal file download
-        desc.innerText = `共 ${records.length} 筆紀錄`;
-        desktop.classList.remove('hidden');
-        ios.classList.add('hidden');
-    }
+    if(!records.length){showToast('❌ 目前沒有紀錄可匯出');return;}
+    const json=JSON.stringify(records,null,2);
+    document.getElementById('exportDesc').innerText=`共 ${records.length} 筆紀錄`;
+    document.getElementById('exportDesktopArea').classList.toggle('hidden', isIOS());
+    document.getElementById('exportIosArea').classList.toggle('hidden', !isIOS());
+    if(isIOS()) document.getElementById('exportJsonText').value=json;
     document.getElementById('exportModal').classList.remove('hidden');
     lucide.createIcons();
 }
 function doFileDownload() {
-    const json = JSON.stringify(records, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `FixLog_Backup_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
-    showToast("💾 備份檔案已下載");
-    closeExportModal();
+    const blob=new Blob([JSON.stringify(records,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=Object.assign(document.createElement('a'),{href:url,download:`FixLog_${new Date().toISOString().slice(0,10)}.json`});
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+    showToast('💾 備份已下載');closeExportModal();
 }
 function copyExportJson() {
-    const text = document.getElementById('exportJsonText').value;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => showToast("📋 JSON 已複製，請貼到備忘錄"));
-    } else {
-        // Fallback: select and execCommand
-        const ta = document.getElementById('exportJsonText');
-        ta.select(); ta.setSelectionRange(0, 99999);
-        document.execCommand('copy');
-        showToast("📋 JSON 已複製");
-    }
+    const ta=document.getElementById('exportJsonText');
+    if(navigator.clipboard?.writeText) navigator.clipboard.writeText(ta.value).then(()=>showToast('📋 JSON 已複製'));
+    else { ta.select();ta.setSelectionRange(0,99999);document.execCommand('copy');showToast('📋 JSON 已複製'); }
 }
-function closeExportModal() {
-    document.getElementById('exportModal').classList.add('hidden');
-}
-
-// ── Import ──
-function openImportModal() {
-    switchImportTab('file');
-    document.getElementById('importPasteText').value = '';
-    document.getElementById('importModal').classList.remove('hidden');
-    lucide.createIcons();
-}
-function closeImportModal() {
-    document.getElementById('importModal').classList.add('hidden');
-}
+function closeExportModal() { document.getElementById('exportModal').classList.add('hidden'); }
+function openImportModal() { switchImportTab('file');document.getElementById('importPasteText').value='';document.getElementById('importModal').classList.remove('hidden');lucide.createIcons(); }
+function closeImportModal() { document.getElementById('importModal').classList.add('hidden'); }
 function switchImportTab(tab) {
-    const fileTab = document.getElementById('importFileTab');
-    const pasteTab = document.getElementById('importPasteTab');
-    const btnFile = document.getElementById('importTabFile');
-    const btnPaste = document.getElementById('importTabPaste');
-    if (tab === 'file') {
-        fileTab.classList.remove('hidden'); pasteTab.classList.add('hidden');
-        btnFile.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700';
-        btnPaste.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400';
-    } else {
-        fileTab.classList.add('hidden'); pasteTab.classList.remove('hidden');
-        btnPaste.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700';
-        btnFile.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400';
-    }
+    const isF=tab==='file';
+    document.getElementById('importFileTab').classList.toggle('hidden',!isF);
+    document.getElementById('importPasteTab').classList.toggle('hidden',isF);
+    const on='flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-stone-700';
+    const off='flex-1 py-2 rounded-xl text-xs font-bold transition-all text-stone-400';
+    document.getElementById('importTabFile').className=isF?on:off;
+    document.getElementById('importTabPaste').className=isF?off:on;
 }
-function importFromFile(input) {
-    const file = input.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) { processImportJSON(e.target.result); };
-    reader.readAsText(file);
-    input.value = '';
-}
-function importFromPaste() {
-    const text = document.getElementById('importPasteText').value.trim();
-    if (!text) { showToast("❌ 請先貼上 JSON 內容"); return; }
-    processImportJSON(text);
-}
+function importFromFile(input) { const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>processImportJSON(e.target.result);r.readAsText(f);input.value=''; }
+function importFromPaste() { const t=document.getElementById('importPasteText').value.trim();if(!t){showToast('❌ 請先貼上 JSON 內容');return;}processImportJSON(t); }
 function processImportJSON(text) {
     try {
-        const imported = JSON.parse(text);
-        if (!Array.isArray(imported)) throw new Error();
-        if (confirm(`確定要匯入 ${imported.length} 筆紀錄嗎？這將覆蓋目前所有資料！`)) {
-            records = imported;
-            localStorage.setItem(DB_KEY, JSON.stringify(records));
-            renderDashboard(); renderRecords();
-            closeImportModal();
-            showToast("✅ 資料還原成功");
-        }
-    } catch(err) {
-        showToast("❌ 格式錯誤，請確認是正確的備份檔");
-    }
+        const imp=JSON.parse(text);
+        if(!Array.isArray(imp))throw 0;
+        if(!confirm(`確定匯入 ${imp.length} 筆紀錄？這將覆蓋所有現有資料！`))return;
+        records=imp;localStorage.setItem(DB_KEY,JSON.stringify(records));
+        renderDashboard();renderRecords();closeImportModal();showToast('✅ 資料還原成功');
+    } catch { showToast('❌ 格式錯誤，請確認備份檔'); }
 }
 
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 // Toast
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.style.opacity = '1';
-    t.style.top = '60px';
-    clearTimeout(t._timer);
-    t._timer = setTimeout(() => { t.style.opacity = '0'; t.style.top = '48px'; }, 2200);
+    const t=document.getElementById('toast');
+    t.innerText=msg;t.style.opacity='1';t.style.top='60px';
+    clearTimeout(t._t);
+    t._t=setTimeout(()=>{t.style.opacity='0';t.style.top='48px';},2400);
 }
 
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 // Init
-// ────────────────────────────────────────────
+// ═══════════════════════════════════════════
 updateMeeting();
 renderDashboard();
 lucide.createIcons();
-
-// Set initial tab indicator
-document.querySelector('.tab-btn.active .tab-indicator').style.opacity = '1';
+document.querySelector('.tab-btn.active .tab-line').style.opacity='1';
 </script>
 
 </body>
