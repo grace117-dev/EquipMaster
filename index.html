@@ -308,7 +308,7 @@
 <div id="page-records" class="page">
     <div class="relative mb-3">
         <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-stone-400 pointer-events-none"></i>
-        <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋廠別、機型、內容…"
+        <input type="text" id="searchInput" oninput="renderRecords()" placeholder="搜尋廠別、機型、機號、內容…"
             class="w-full bg-white border border-stone-200 pl-10 pr-12 py-2.5 rounded-2xl text-sm outline-none shadow-sm transition-all focus:ring-2 focus:border-stone-300" style="focus:ring-color:var(--green-pale)">
         <span id="searchCount" class="absolute right-4 top-2.5 text-[10px] font-bold text-stone-400"></span>
     </div>
@@ -614,7 +614,7 @@ function renderRecords() {
         `<button onclick="setFilter('${f}')" class="pill ${selFac===f?'on':'off'}">${f}</button>`
     ).join('');
     const res=records.filter(r=>{
-        const hit=[r.model,r.content,r.factory,r.item].some(v=>v.toLowerCase().includes(s));
+        const hit=[r.model,r.content,r.factory,r.item,r.sn].some(v=>(v||'').toLowerCase().includes(s));
         return hit&&(selFac==='全部'||r.factory===selFac);
     });
     document.getElementById('searchCount').innerText=(s||selFac!=='全部')?`${res.length} 筆`:'';
