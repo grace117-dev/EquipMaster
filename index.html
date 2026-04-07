@@ -175,6 +175,41 @@
         .rac.edit { background:#f0ede8; color:#555; }
         .rac.copy { background:#e8f0fb; color:#3b7dd8; }
         .rac.del  { background:#fdf0f0; color:#d94f4f; }
+
+        /* Status badges */
+        .status-fixed   { background:#e6f4ec; color:#1e7e3e; border:1px solid #b6dfc4; }
+        .status-pending { background:#fff7e6; color:#b45309; border:1px solid #fcd98a; }
+
+        /* Status toggle in form */
+        .status-toggle { display:flex; gap:8px; }
+        .status-opt { flex:1; padding:10px 0; border-radius:12px; font-size:12px; font-weight:700; text-align:center; border:2px solid #ece9e3; color:var(--text-sub); transition:all 0.18s; cursor:pointer; }
+        .status-opt.active-fixed   { border-color:#1e7e3e; background:#e6f4ec; color:#1e7e3e; }
+        .status-opt.active-pending { border-color:#b45309; background:#fff7e6; color:#b45309; }
+
+        /* Lightbox */
+        #lightbox {
+            position:fixed; inset:0; z-index:500;
+            background:rgba(0,0,0,0.92);
+            display:flex; align-items:center; justify-content:center;
+            opacity:0; pointer-events:none;
+            transition:opacity 0.2s ease;
+        }
+        #lightbox.open { opacity:1; pointer-events:auto; }
+        #lightbox img {
+            max-width:94vw; max-height:88vh;
+            border-radius:12px;
+            object-fit:contain;
+            transform:scale(0.92);
+            transition:transform 0.22s ease;
+        }
+        #lightbox.open img { transform:scale(1); }
+        #lightboxClose {
+            position:absolute; top:16px; right:16px;
+            width:36px; height:36px; border-radius:50%;
+            background:rgba(255,255,255,0.15);
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:20px; cursor:pointer;
+        }
     </style>
 </head>
 <body class="pb-28">
@@ -358,6 +393,13 @@
                     <span class="field-label">機號</span>
                     <input type="text" id="f_sn" class="field-input" placeholder="序號（選填）">
                 </div>
+                <div class="field-row">
+                    <span class="field-label">狀態</span>
+                    <div class="status-toggle flex-1">
+                        <div id="s_fixed" class="status-opt active-fixed" onclick="setStatus('fixed')">✅ 已修復</div>
+                        <div id="s_pending" class="status-opt" onclick="setStatus('pending')">⏳ 待部品</div>
+                    </div>
+                </div>
             </div>
             <div class="card p-4">
                 <input type="text" id="f_item" placeholder="維修項目標題" class="w-full bg-transparent text-sm font-bold outline-none mb-3 pb-3 border-b border-stone-100 placeholder-stone-300">
@@ -433,6 +475,12 @@
     </div>
 </div>
 
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+    <div id="lightboxClose">✕</div>
+    <img id="lightboxImg" src="" alt="">
+</div>
+
 <!-- TOAST -->
 <div id="toast" class="fixed top-14 left-1/2 px-5 py-2.5 rounded-full text-xs font-bold text-white opacity-0 z-[200] pointer-events-none" style="background:var(--green);transform:translateX(-50%);transition:opacity 0.25s ease,top 0.25s ease"></div>
 
@@ -460,6 +508,7 @@ function loadRecords() {
 
 let records    = loadRecords();
 let currentImg = null;
+let currentStatus = 'fixed';
 let selFac     = '全部';
 let editId     = null;
 let statYear   = new Date().getFullYear();
@@ -616,6 +665,10 @@ function renderRecords() {
                             <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                                 <span class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background:var(--green-pale);color:var(--green)">${r.factory}</span>
                                 <span class="font-mono text-[10px] text-stone-400">${r.datetime}</span>
+                                ${r.status==='pending'
+                                    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full status-pending">⏳ 待部品</span>`
+                                    : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full status-fixed">✅ 已修復</span>`
+                                }
                             </div>
                             <h3 class="font-bold text-[15px] leading-snug" style="color:var(--text)">${r.model} <span class="text-xs font-normal text-stone-400">#${r.sn}</span></h3>
                             <p class="text-[11px] font-semibold mt-0.5" style="color:var(--green-lt)">${r.item}</p>
@@ -635,7 +688,7 @@ function renderRecords() {
                     <div class="collapse-content">
                         <div class="inner-content">
                             <div class="mt-3 rounded-xl p-3 text-sm leading-relaxed border" style="background:#fafaf8;border-color:#f0ede8;color:var(--text-mid)">${r.content.replace(/\n/g,'<br>')}</div>
-                            ${r.image?`<img src="${r.image}" class="w-full mt-3 rounded-2xl object-cover max-h-52">`:''}
+                            ${r.image?`<img src="${r.image}" class="w-full mt-3 rounded-2xl object-cover max-h-52 cursor-zoom-in" onclick="openLightbox(this.src, event)">`:''}
                             <div class="flex justify-end mt-3 pt-3 border-t" style="border-color:#f0ede8">
                                 <button data-action="delete" data-id="${r.id}" class="rac del">
                                     <i data-lucide="trash-2" class="w-3 h-3 pointer-events-none"></i>
@@ -677,6 +730,7 @@ function openFormForAdd() {
     const n=new Date(); n.setMinutes(n.getMinutes()-n.getTimezoneOffset());
     document.getElementById('f_datetime').value=n.toISOString().slice(0,16);
     document.getElementById('factory-list').innerHTML=[...new Set(records.map(r=>r.factory))].map(f=>`<option value="${f}">`).join('');
+    setStatus('fixed');
     document.getElementById('repairForm').classList.remove('hidden');
 }
 function openFormForEdit(id) {
@@ -690,6 +744,7 @@ function openFormForEdit(id) {
     document.getElementById('f_sn').value=r.sn==='-'?'':r.sn;
     document.getElementById('f_item').value=r.item;
     document.getElementById('f_content').value=r.content;
+    setStatus(r.status||'fixed');
     if (r.image) {
         currentImg=r.image;
         document.getElementById('imgPreview').src=r.image;
@@ -734,6 +789,7 @@ function saveRecord(e) {
         sn:      document.getElementById('f_sn').value.trim()||'-',
         item:    document.getElementById('f_item').value.trim()||'未分類',
         content: document.getElementById('f_content').value.trim(),
+        status:  currentStatus,
         image:   currentImg
     };
     if (editId) { records[records.findIndex(x=>x.id===editId)]={...records.find(x=>x.id===editId),...d}; showToast('✅ 紀錄已更新'); }
@@ -808,6 +864,27 @@ function processImportJSON(text) {
         records=imp;localStorage.setItem(DB_KEY,JSON.stringify(records));
         renderDashboard();renderRecords();closeImportModal();showToast('✅ 資料還原成功');
     } catch { showToast('❌ 格式錯誤，請確認備份檔'); }
+}
+
+// ═══════════════════════════════════════════
+// Status toggle
+// ═══════════════════════════════════════════
+function setStatus(val) {
+    currentStatus = val;
+    document.getElementById('s_fixed').className   = 'status-opt' + (val==='fixed'   ? ' active-fixed'   : '');
+    document.getElementById('s_pending').className = 'status-opt' + (val==='pending' ? ' active-pending' : '');
+}
+
+// ═══════════════════════════════════════════
+// Lightbox
+// ═══════════════════════════════════════════
+function openLightbox(src, e) {
+    if(e) e.stopPropagation();
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
 }
 
 // ═══════════════════════════════════════════
