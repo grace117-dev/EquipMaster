@@ -211,8 +211,11 @@ body{font-family:"Noto Sans TC",-apple-system,sans-serif;background:var(--bg);co
 <!-- PAGE: PM 點檢 -->
 <div id="page-pm" class="page">
   <div class="flex justify-between items-center mb-3 px-1">
-    <span class="sec-label">PM 標籤點檢</span>
-    <div class="flex items-center gap-1.5">
+    <span class="sec-label">PM 點檢 · T202 DA</span>
+    <div class="flex items-center gap-2">
+      <button onclick="openPmAiModal()" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl btn-tap" style="background:var(--green-pale);color:var(--green)">
+        <i data-lucide="scan" class="w-3.5 h-3.5"></i> AI讀取
+      </button>
       <button onclick="setPmMonth(-1)" class="mnav">◀</button>
       <span id="pmMonthLabel" class="text-[11px] font-bold text-stone-500 min-w-[60px] text-center"></span>
       <button onclick="setPmMonth(1)" class="mnav">▶</button>
@@ -375,6 +378,67 @@ body{font-family:"Noto Sans TC",-apple-system,sans-serif;background:var(--bg);co
   </div>
 </div>
 
+<!-- AI PM 讀取 MODAL -->
+<div id="pmAiModal" class="hidden fixed inset-0 z-[150] form-overlay flex items-end">
+  <div class="form-sheet w-full p-5 slide-in" style="max-height:90vh;overflow-y:auto">
+    <div class="w-9 h-1 bg-stone-300 rounded-full mx-auto mb-5"></div>
+    <div class="flex justify-between items-center mb-1">
+      <h2 class="font-display text-xl" style="color:var(--green)">AI 讀取清單</h2>
+      <button onclick="closePmAiModal()" class="text-blue-500 font-semibold text-sm">關閉</button>
+    </div>
+    <p class="text-xs text-stone-400 mb-4">拍攝或上傳 PM 表格截圖，AI 自動提取 T202 DA 站清單</p>
+
+    <!-- 上傳區 -->
+    <div id="pmAiUploadArea">
+      <label class="w-full border-2 border-dashed border-stone-200 rounded-2xl py-8 flex flex-col items-center gap-2 cursor-pointer active:bg-stone-50 transition-all block mb-3">
+        <i data-lucide="image-plus" class="w-8 h-8 text-stone-300"></i>
+        <span class="text-sm font-bold text-stone-400">點擊上傳表格圖片</span>
+        <span class="text-[10px] text-stone-300">支援 JPG / PNG</span>
+        <input type="file" class="hidden" accept="image/*" onchange="handlePmAiImage(this)">
+      </label>
+    </div>
+
+    <!-- 預覽圖 -->
+    <div id="pmAiPreview" class="hidden mb-3">
+      <img id="pmAiPreviewImg" src="" class="w-full rounded-2xl max-h-48 object-cover mb-2">
+      <button onclick="runPmAiExtract()" id="pmAiRunBtn" class="w-full text-white py-3.5 rounded-2xl font-bold text-sm btn-tap flex items-center justify-center gap-2" style="background:var(--green)">
+        <i data-lucide="cpu" class="w-4 h-4"></i> AI 解析圖片
+      </button>
+    </div>
+
+    <!-- 載入中 -->
+    <div id="pmAiLoading" class="hidden text-center py-8">
+      <div class="inline-block w-8 h-8 border-3 border-stone-200 rounded-full mb-3" style="border-top-color:var(--green);animation:spin 0.8s linear infinite;border-width:3px"></div>
+      <p class="text-sm font-bold text-stone-500">AI 正在解析圖片…</p>
+      <p class="text-xs text-stone-400 mt-1">約需 10-20 秒</p>
+    </div>
+
+    <!-- 結果 -->
+    <div id="pmAiResult" class="hidden">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+        <p class="text-sm font-bold text-stone-700">解析完成，請確認清單</p>
+        <span id="pmAiCount" class="badge bg-[var(--green-pale)] text-[var(--green)]"></span>
+      </div>
+      <div id="pmAiResultList" class="card p-4 mb-3 max-h-52 overflow-y-auto space-y-2 text-sm"></div>
+      <button onclick="importPmAiData()" class="w-full text-white py-3.5 rounded-2xl font-bold text-sm btn-tap flex items-center justify-center gap-2 mb-2" style="background:var(--green)">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> 匯入此清單
+      </button>
+      <button onclick="resetPmAiModal()" class="w-full py-3 rounded-2xl font-bold text-sm text-stone-400">重新上傳</button>
+    </div>
+
+    <!-- 錯誤 -->
+    <div id="pmAiError" class="hidden">
+      <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-3 text-sm text-red-600">
+        <p class="font-bold mb-1">解析失敗</p>
+        <p id="pmAiErrorMsg" class="text-xs"></p>
+      </div>
+      <button onclick="resetPmAiModal()" class="w-full py-3 rounded-2xl font-bold text-sm text-stone-400">重新嘗試</button>
+    </div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
 <!-- LIGHTBOX -->
 <div id="lightbox" onclick="closeLightbox()">
   <div id="lightboxClose">✕</div>
@@ -410,35 +474,38 @@ let pmYear = new Date().getFullYear(), pmMonth = new Date().getMonth();
 let currentPage = 'dash';
 
 // ═══════════════════════════════════════
-// PM 資料 — T202 (依圖片整理)
+// PM 資料 — T202 DA 站 (含設備編號、保養時間、備註)
+// sn=新機號, serial=流程編號, pmDate=2026保養日期, notes=備註
 // ═══════════════════════════════════════
-const PM_T202 = [
-  { station:'DA', items:[
-    {model:'DB-700',sn:'#13'},{model:'DB-700',sn:'#15'},{model:'DB-700',sn:'#20'},
-    {model:'DB-700',sn:'#26'},{model:'DB-700',sn:'#42'},{model:'DB-700',sn:'#79'},
-    {model:'DB-700',sn:'#80'},{model:'DB-700',sn:'#81'},{model:'DB-700',sn:'#84'},
-    {model:'DB-700',sn:'#88'},{model:'DB-700',sn:'A09'},
-    {model:'AD-8312',sn:'#41'},{model:'AD-8312',sn:'#43'},{model:'AD-8312',sn:'C12'},
-    {model:'QMO-2DSF',sn:'#3'},
-  ]},
-  { station:'DAC', items:[
-    {model:'MOL-2',sn:'#19'},{model:'QMO-2DSF',sn:'#4'},{model:'QMO-2',sn:'#33'},
-  ]},
-  { station:'WG', items:[
-    {model:'GNX-200B',sn:'#2'},{model:'GNX-200',sn:'#6'},
-    {model:'GNX-200B',sn:'#7'},{model:'GNX-300B',sn:'#5'},
-  ]},
-  { station:'WS', items:[
-    {model:'DFD-6361',sn:'#1'},{model:'DFD-6361',sn:'#2'},{model:'DFD-6361',sn:'#4'},
-    {model:'DFD-6361',sn:'#8'},{model:'DFD-6361',sn:'#10'},{model:'DFD-6361',sn:'#18'},
-    {model:'DFD-6361',sn:'#19'},{model:'DFD-6361',sn:'#20'},{model:'DFD-6361',sn:'#21'},
-    {model:'DFD-6361',sn:'#22'},{model:'DFD-6361',sn:'#28'},{model:'DFD-6361',sn:'#29'},
-    {model:'DFD-6361',sn:'#32'},{model:'DFD-6362',sn:'#20'},
-  ]},
-  { station:'PMP', items:[
-    {model:'ILM-380WYX',sn:'#1'},{model:'ILM-380WYX',sn:'#2'},
-  ]},
+// 動態清單 key（允許透過 AI 讀取更新）
+const PM_DA_STATIC = [
+  {model:'DB-700',  sn:'#13', serial:'41052031', pmDate:'2026/4/7',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#15', serial:'41052031', pmDate:'2026/4/7',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#20', serial:'41052200', pmDate:'2026/4/9',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#26', serial:'41053039', pmDate:'2026/4/7',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#42', serial:'41052341', pmDate:'2026/4/14', notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#79', serial:'41052019', pmDate:'2026/4/9',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#80', serial:'41052200', pmDate:'2026/4/9',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#81', serial:'41052200', pmDate:'2026/4/9',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#84', serial:'41052258', pmDate:'2026/4/9',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'#88', serial:'41052048', pmDate:'2026/4/7',  notes:'LOG下載',    person:'江治君'},
+  {model:'DB-700',  sn:'A09', serial:'41052349', pmDate:'2026/4/7',  notes:'LOG下載',    person:'盛博文'},
+  {model:'AD-8312', sn:'#41', serial:'41052091', pmDate:'2026/4/7',  notes:'車用年/半年保', person:'江治君'},
+  {model:'AD-8312', sn:'#43', serial:'41052492', pmDate:'2026/4/10', notes:'車用年/半年保', person:'江治君'},
+  {model:'AD-8312', sn:'C12', serial:'',         pmDate:'2026/4/14', notes:'車用年/半年保', person:'江治君'},
+  {model:'QMO-2DSF',sn:'#3',  serial:'41010201', pmDate:'2026/4/10', notes:'LOG下載',    person:'江治君'},
 ];
+
+// 從 localStorage 讀取（AI 匯入後會覆寫），否則用 static
+function getPmDaItems(){
+  try{
+    const raw=localStorage.getItem('FIXLOG_PM_DA_ITEMS');
+    if(raw){const p=JSON.parse(raw);if(Array.isArray(p)&&p.length>0)return p;}
+  }catch(e){}
+  return PM_DA_STATIC;
+}
+
+const PM_T202 = [{ station:'DA', items: getPmDaItems() }];
 
 // ═══════════════════════════════════════
 // Navigation
@@ -825,10 +892,17 @@ function renderPm(){
           ${checked?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-[13px] font-bold leading-snug" style="color:var(--text)">${item.model}</p>
-          <p class="font-mono text-[11px] text-stone-400">${item.sn}</p>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <p class="text-[13px] font-bold leading-snug" style="color:var(--text)">${item.model}</p>
+            <span class="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded" style="background:var(--green-pale);color:var(--green)">${item.sn}</span>
+          </div>
+          ${item.serial?`<p class="font-mono text-[10px] text-stone-400 mt-0.5">流程 ${item.serial}</p>`:''}
+          <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+            ${item.pmDate?`<span class="text-[10px] font-bold text-blue-500">📅 ${item.pmDate}</span>`:''}
+            ${item.notes?`<span class="text-[10px] text-stone-400">${item.notes}</span>`:''}
+          </div>
         </div>
-        ${checked?'<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">✓ 已貼</span>':'<span class="text-[10px] text-stone-300 font-bold">未貼</span>'}
+        ${checked?'<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200 flex-shrink-0">✓ 已貼</span>':'<span class="text-[10px] text-stone-300 font-bold flex-shrink-0">未貼</span>'}
       </div>`;
     }).join('');
 
@@ -873,6 +947,115 @@ function confirmResetPm(){
     renderPm();
     showToast('🔄 點檢記錄已重置');
   }
+}
+
+// ═══════════════════════════════════════
+// AI PM 讀取
+// ═══════════════════════════════════════
+let pmAiBase64 = null;
+let pmAiParsed = [];
+
+function openPmAiModal(){
+  resetPmAiModal();
+  document.getElementById('pmAiModal').classList.remove('hidden');
+  lucide.createIcons();
+}
+function closePmAiModal(){ document.getElementById('pmAiModal').classList.add('hidden'); }
+
+function handlePmAiImage(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    pmAiBase64=e.target.result.split(',')[1];
+    document.getElementById('pmAiPreviewImg').src=e.target.result;
+    document.getElementById('pmAiUploadArea').classList.add('hidden');
+    document.getElementById('pmAiPreview').classList.remove('hidden');
+    lucide.createIcons();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function runPmAiExtract(){
+  document.getElementById('pmAiPreview').classList.add('hidden');
+  document.getElementById('pmAiLoading').classList.remove('hidden');
+  document.getElementById('pmAiResult').classList.add('hidden');
+  document.getElementById('pmAiError').classList.add('hidden');
+
+  const prompt = `你是一個工廠設備維護資料提取助手。
+請仔細閱讀這張表格圖片，提取「廠別為 T202」且「站別為 DA」的所有機台資料。
+
+請以 JSON 陣列格式回覆，每個物件包含以下欄位（若無法讀取則填空字串）：
+- model: 機型說明
+- sn: 新機號（新機號那欄的值，若無則用舊機號）
+- serial: 流程編號（6~8位數字）
+- pmDate: 2026年的保養日期（格式如 2026/4/7）
+- notes: 備註欄位內容
+- person: 負責人
+
+只回傳 JSON 陣列，不要有其他說明文字，不要用 markdown 代碼塊。`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:pmAiBase64}},
+            {type:'text',text:prompt}
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c=>c.text||'').join('') || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    pmAiParsed = JSON.parse(clean);
+    if(!Array.isArray(pmAiParsed)||pmAiParsed.length===0) throw new Error('未找到 T202 DA 資料');
+
+    document.getElementById('pmAiLoading').classList.add('hidden');
+    document.getElementById('pmAiResult').classList.remove('hidden');
+    document.getElementById('pmAiCount').innerText=`${pmAiParsed.length} 台`;
+    document.getElementById('pmAiResultList').innerHTML=pmAiParsed.map(item=>`
+      <div class="flex items-start gap-2 py-1.5 border-b border-stone-100 last:border-0">
+        <div class="flex-1 min-w-0">
+          <span class="font-bold text-[13px]">${item.model}</span>
+          <span class="font-mono text-[11px] ml-1.5 px-1.5 py-0.5 rounded" style="background:var(--green-pale);color:var(--green)">${item.sn}</span>
+          ${item.serial?`<span class="text-[10px] text-stone-400 ml-1">${item.serial}</span>`:''}
+          ${item.pmDate?`<span class="text-[10px] text-blue-500 ml-1">📅${item.pmDate}</span>`:''}
+          ${item.notes?`<div class="text-[10px] text-stone-400 mt-0.5">${item.notes}</div>`:''}
+        </div>
+      </div>`).join('');
+    lucide.createIcons();
+  } catch(err) {
+    document.getElementById('pmAiLoading').classList.add('hidden');
+    document.getElementById('pmAiError').classList.remove('hidden');
+    document.getElementById('pmAiErrorMsg').innerText = err.message||'請確認圖片清晰度，或手動調整資料';
+  }
+}
+
+function importPmAiData(){
+  if(!pmAiParsed.length)return;
+  localStorage.setItem('FIXLOG_PM_DA_ITEMS', JSON.stringify(pmAiParsed));
+  // Reload the PM list
+  PM_T202[0].items = pmAiParsed;
+  closePmAiModal();
+  renderPm();
+  showToast(`✅ 已匯入 ${pmAiParsed.length} 台 DA 站機台`);
+}
+
+function resetPmAiModal(){
+  pmAiBase64=null; pmAiParsed=[];
+  document.getElementById('pmAiUploadArea').classList.remove('hidden');
+  document.getElementById('pmAiPreview').classList.add('hidden');
+  document.getElementById('pmAiLoading').classList.add('hidden');
+  document.getElementById('pmAiResult').classList.add('hidden');
+  document.getElementById('pmAiError').classList.add('hidden');
+  const inp=document.querySelector('#pmAiModal input[type=file]');
+  if(inp)inp.value='';
 }
 
 // ═══════════════════════════════════════
